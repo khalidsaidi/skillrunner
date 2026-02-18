@@ -3,8 +3,8 @@ export interface SkillMeta {
   description: string;
   version?: string;
   tags?: string[];
-  kind?: 'automation' | 'knowledge';
-  risk?: 'low' | 'moderate' | 'high';
+  kind?: "automation" | "knowledge";
+  risk?: "low" | "moderate" | "high";
   capabilities?: {
     shell?: boolean;
     network?: boolean;
@@ -23,19 +23,24 @@ export interface SkillMeta {
 }
 
 export interface InputDef {
-  type: 'string' | 'boolean' | 'enum';
+  type: "string" | "boolean" | "enum";
   default?: string | boolean;
   values?: string[];
 }
 
 export interface Plan {
   steps: PlanStep[];
-  requires: { shell?: boolean; network?: boolean; fs_read?: boolean; fs_write?: boolean };
-  risk: 'low' | 'moderate' | 'high';
+  requires: {
+    shell?: boolean;
+    network?: boolean;
+    fs_read?: boolean;
+    fs_write?: boolean;
+  };
+  risk: "low" | "moderate" | "high";
 }
 
 export interface PlanStep {
-  type: 'shell';
+  type: "shell";
   cmd: string;
 }
 
@@ -56,8 +61,8 @@ export interface RegistrySkill {
   description: string;
   version?: string;
   tags?: string[];
-  kind?: 'automation' | 'knowledge';
-  risk?: 'low' | 'moderate' | 'high';
+  kind?: "automation" | "knowledge";
+  risk?: "low" | "moderate" | "high";
   capabilities?: Record<string, boolean>;
   scripts?: Record<string, string>;
   inputs?: Record<string, unknown>;

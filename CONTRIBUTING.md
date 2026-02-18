@@ -15,6 +15,7 @@ pnpm build
 - `packages/engine` — Core runtime (registry, planning, execution)
 - `packages/dashboard` — Local web UI
 - `packages/registry-tools` — Build and validate registry index
+- `packages/adapters` — Optional provider adapter stubs (Cursor, CLI)
 - `registry/skills/` — Skill definitions
 - `registry/packs/` — Curated skill bundles
 
@@ -28,4 +29,4 @@ pnpm build
 
 - TypeScript strict mode
 - ESLint + Prettier
-- Run `pnpm lint` and `pnpm format`
+- Run `pnpm lint`, `pnpm format`, and `pnpm format:check` (CI runs format:check)

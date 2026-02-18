@@ -16,13 +16,16 @@ scripts:
 # node-doctor
 
 ## When to use
+
 Use when you want to diagnose a Node.js project's environment and tooling setup.
 
 ## What it will do
+
 - Detects node, pnpm, npm, yarn versions
 - Checks for package.json, lockfile, git
 - Writes a report to run artifacts only (no repo edits)
 
 ## Safety
+
 - Read-only; never modifies the repo.
 - Output goes to ~/.skillrunner/runs/<runId>/

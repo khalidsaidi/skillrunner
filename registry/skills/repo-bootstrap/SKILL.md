@@ -17,14 +17,17 @@ scripts:
 # repo-bootstrap
 
 ## When to use
+
 Use when you want to standardize a new or existing repo with lint, format, and CI.
 
 ## What it will do
+
 - Adds ESLint, Prettier, Husky, lint-staged
 - Adds basic configs
 - Adds minimal GitHub Actions CI
 - Creates branch `skill/repo-bootstrap/<date>` and commits (no push)
 
 ## Safety
+
 - Never pushes to remotes.
 - Creates a new branch; does not modify main directly.

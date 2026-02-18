@@ -2,7 +2,7 @@ name: Pages Registry
 on:
   push:
     branches: [main]
-    paths: ['registry/**']
+    paths: ["registry/**"]
 jobs:
   deploy:
     runs-on: ubuntu-latest

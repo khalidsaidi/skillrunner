@@ -13,8 +13,10 @@ jobs:
           node-version: 20
           cache: pnpm
       - run: pnpm install
-      - run: pnpm run lint 2>/dev/null || true
-      - run: pnpm run typecheck 2>/dev/null || true
+      - run: pnpm run format:check
+      - run: pnpm run lint
+      - run: pnpm run typecheck
       - run: pnpm run build
       - run: pnpm registry:validate
       - run: pnpm registry:build
+      - run: pnpm test

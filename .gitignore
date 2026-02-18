@@ -7,9 +7,8 @@ dist/
 .env.*
 !.env.example
 
-# .ai internal (partial)
-.ai/logs/
-.ai/sandboxes/
+# .ai — whole directory ignored (secrets, logs, sandboxes)
+.ai/
 
 # Build outputs
 *.tsbuildinfo

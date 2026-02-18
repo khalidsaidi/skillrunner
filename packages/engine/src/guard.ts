@@ -1,5 +1,4 @@
-import { readFileSync } from 'fs';
-import { join } from 'path';
+import { readFileSync } from "fs";
 
 // Match lines that are NOT comments (avoid blocking shebangs)
 const isComment = (line: string) => /^\s*#/.test(line);
@@ -16,7 +15,7 @@ const HARD_BLOCK_PATTERNS: RegExp[] = [
 ];
 
 // Paths that indicate dangerous writes (avoid matching shebangs like #!/usr/bin/env)
-const DANGEROUS_PATH_PATTERN = /(^|[^\#])\s*\/(etc|usr\/bin|bin)\b/;
+const DANGEROUS_PATH_PATTERN = /(^|[^#])\s*\/(etc|usr\/bin|bin)\b/;
 
 export interface GuardResult {
   passed: boolean;
@@ -27,12 +26,12 @@ export function scanScriptForBannedPatterns(scriptPath: string): GuardResult {
   const violations: string[] = [];
   let content: string;
   try {
-    content = readFileSync(scriptPath, 'utf-8');
+    content = readFileSync(scriptPath, "utf-8");
   } catch {
     return { passed: true, violations: [] };
   }
 
-  const lines = content.split('\n');
+  const lines = content.split("\n");
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     if (isComment(line)) continue;
@@ -54,8 +53,8 @@ export function scanScriptForBannedPatterns(scriptPath: string): GuardResult {
 
 export function blockMessage(violations: string[]): string {
   return [
-    'Skill blocked by guard. Hard-block patterns detected:',
+    "Skill blocked by guard. Hard-block patterns detected:",
     ...violations.map((v) => `  - ${v}`),
-    'Fix the script and try again.',
-  ].join('\n');
+    "Fix the script and try again.",
+  ].join("\n");
 }
