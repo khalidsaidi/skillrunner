@@ -13,6 +13,10 @@ dist/
 
 # Build outputs
 *.tsbuildinfo
+packages/*/src/**/*.js
+packages/*/src/**/*.d.ts
+packages/*/src/**/*.js.map
+packages/*/src/**/*.d.ts.map
 .vite/
 coverage/
 
