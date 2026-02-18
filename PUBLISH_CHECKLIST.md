@@ -51,4 +51,4 @@ skill run node-doctor --yes
 
 ---
 
-**Status:** Local commit `e50f269` ready. Steps 2–3 require repo Settings (no CLI). Step 1 requires git push auth.
+**Status:** Code pushed to GitHub via MCP. Steps 2–3 require repo Settings (manual). Step 4 requires `git push origin v0.1.0` (needs auth). pnpm-lock.yaml: run `git add pnpm-lock.yaml && git commit -m "chore: add pnpm-lock" && git push` if missing.
