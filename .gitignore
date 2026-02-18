@@ -1,16 +1,15 @@
+# Dependencies
 node_modules/
+
+# Local dev / secrets
 .cursor/
-dist/
-.DS_Store
-*.log
+.ai/
 .env
 .env.*
 !.env.example
 
-# .ai — whole directory ignored (secrets, logs, sandboxes)
-.ai/
-
 # Build outputs
+dist/
 *.tsbuildinfo
 packages/*/src/**/*.js
 packages/*/src/**/*.d.ts
@@ -18,8 +17,15 @@ packages/*/src/**/*.js.map
 packages/*/src/**/*.d.ts.map
 .vite/
 coverage/
+.turbo/
+.eslintcache
 
-# Editor
+# OS & editor
+.DS_Store
+Thumbs.db
+*.log
+*.bak
+*~
 .idea/
 *.swp
 *.swo

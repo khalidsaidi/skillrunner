@@ -11,13 +11,23 @@ pnpm build
 
 ## Project Structure
 
-- `packages/cli` — CLI commands (`skill`)
-- `packages/engine` — Core runtime (registry, planning, execution)
-- `packages/dashboard` — Local web UI
-- `packages/registry-tools` — Build and validate registry index
-- `packages/adapters` — Optional provider adapter stubs (Cursor, CLI)
-- `registry/skills/` — Skill definitions
-- `registry/packs/` — Curated skill bundles
+```
+skillrunner/
+├── packages/
+│   ├── cli/              # CLI commands (skill)
+│   ├── engine/           # Core runtime (registry, planning, execution)
+│   ├── dashboard/        # Local web UI
+│   ├── registry-tools/   # Build and validate registry index
+│   └── adapters/         # Optional provider adapter stubs (Cursor, CLI)
+├── registry/
+│   ├── skills/           # Skill definitions (SKILL.md + scripts)
+│   ├── packs/            # Curated skill bundles
+│   └── dist/             # Generated index (gitignored, built in CI)
+├── .github/workflows/    # CI, release, GitHub Pages
+└── [config] package.json, tsconfig.base.json, eslint.config.js, etc.
+```
+
+**Gitignored:** `node_modules/`, `dist/`, `.ai/`, `.cursor/`, `.env*`, build outputs, caches.
 
 ## Adding a Skill
 
