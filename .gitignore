@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Local dev / secrets
+.cursor/
+.ai/
+.env
+.env.*
+!.env.example
+
+# Build outputs
+dist/
+*.tsbuildinfo
+packages/*/src/**/*.js
+packages/*/src/**/*.d.ts
+packages/*/src/**/*.js.map
+packages/*/src/**/*.d.ts.map
+.vite/
+coverage/
+.turbo/
+.eslintcache
+
+# OS & editor
+.DS_Store
+Thumbs.db
+*.log
+*.bak
+*~
+.idea/
+*.swp
+*.swo
