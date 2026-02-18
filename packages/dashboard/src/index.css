@@ -1,0 +1,9 @@
+:root {
+  font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #e2e8f0;
+  background: #0f172a;
+}
+body { margin: 0; }
+#root { min-height: 100vh; }

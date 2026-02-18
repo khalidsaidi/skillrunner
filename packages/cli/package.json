@@ -1,0 +1,29 @@
+{
+  "name": "@khalidsaidi/skillrunner",
+  "version": "0.1.0",
+  "description": "SkillRunner — user-friendly skill runner (CLI + dashboard)",
+  "type": "module",
+  "bin": {
+    "skill": "dist/cli.js"
+  },
+  "main": "dist/cli.js",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@skillrunner/engine": "workspace:*",
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "ora": "^8.1.0",
+    "prompts": "^2.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.0",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

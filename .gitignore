@@ -1,0 +1,22 @@
+node_modules/
+.cursor/
+dist/
+.DS_Store
+*.log
+.env
+.env.*
+!.env.example
+
+# .ai internal (partial)
+.ai/logs/
+.ai/sandboxes/
+
+# Build outputs
+*.tsbuildinfo
+.vite/
+coverage/
+
+# Editor
+.idea/
+*.swp
+*.swo

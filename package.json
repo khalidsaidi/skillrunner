@@ -1,0 +1,30 @@
+{
+  "name": "skillrunner-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "description": "SkillRunner — CLI + dashboard + skill registry",
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev": "pnpm -r --parallel dev",
+    "lint": "eslint . --ext .ts,.tsx",
+    "format": "prettier --write .",
+    "typecheck": "pnpm -r typecheck",
+    "test": "vitest run",
+    "registry:build": "pnpm --filter registry-tools build && node packages/registry-tools/dist/build.js",
+    "registry:validate": "pnpm --filter registry-tools build && node packages/registry-tools/dist/validate.js"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@changesets/cli": "^2.27.10",
+    "typescript-eslint": "^8.0.0",
+    "@types/node": "^20.17.0",
+    "eslint": "^8.57.0",
+    "prettier": "^3.4.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  },
+  "packageManager": "pnpm@9.15.1",
+  "engines": {
+    "node": ">=20"
+  }
+}
