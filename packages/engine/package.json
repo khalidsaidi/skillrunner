@@ -1,10 +1,25 @@
 {
-  "name": "@skillrunner/engine",
+  "name": "@khalidsaidi/skillrunner-engine",
   "version": "0.1.0",
-  "private": true,
+  "description": "Core runtime engine for SkillRunner CLI",
   "type": "module",
+  "license": "MIT",
+  "homepage": "https://github.com/khalidsaidi/skillrunner#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/khalidsaidi/skillrunner.git"
+  },
+  "bugs": {
+    "url": "https://github.com/khalidsaidi/skillrunner/issues"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",

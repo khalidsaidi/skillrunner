@@ -9,9 +9,11 @@ import {
   blockMessage,
   executePlan,
   writeRunArtifacts,
+  checkSkillPrerequisites,
   getSkillsDir,
-} from "@skillrunner/engine";
+} from "@khalidsaidi/skillrunner-engine";
 import { randomUUID } from "crypto";
+import { shouldUseJson } from "../utils/json.js";
 
 function findSkillDir(name: string): string | null {
   const skillsDir = getSkillsDir();
@@ -31,10 +33,14 @@ export async function runCmd(
     cwd?: string;
     allowDirty?: boolean;
     noBranch?: boolean;
+    json?: boolean;
   },
-  cmd: { opts: () => { json?: boolean } },
+  cmd: {
+    opts?: () => { json?: boolean };
+    parent?: { opts?: () => { json?: boolean } };
+  },
 ): Promise<void> {
-  const json = !!cmd.opts().json;
+  const json = shouldUseJson(opts, cmd);
   const cwd = opts.cwd || process.cwd();
   const skillDir = findSkillDir(name);
 
@@ -69,6 +75,53 @@ export async function runCmd(
 
   const meta = parseSkillMd(readFileSync(skillMd, "utf-8"));
   const plan = buildPlan(skillDir, meta);
+  const preflight = checkSkillPrerequisites(meta, cwd);
+
+  if (!preflight.passed) {
+    if (json) {
+      console.log(
+        JSON.stringify(
+          {
+            success: false,
+            error: "Preflight check failed",
+            preflight,
+          },
+          null,
+          2,
+        ),
+      );
+    } else {
+      console.error(chalk.red("Preflight check failed."));
+      if (preflight.missingTools.length) {
+        console.error(
+          chalk.dim(`  Missing tools: ${preflight.missingTools.join(", ")}`),
+        );
+      }
+      if (preflight.missingFiles.length) {
+        console.error(
+          chalk.dim(`  Missing files: ${preflight.missingFiles.join(", ")}`),
+        );
+      }
+      if (preflight.missingEnv.length) {
+        console.error(
+          chalk.dim(
+            `  Missing env vars: ${preflight.missingEnv
+              .map((v) => `$${v}`)
+              .join(", ")}`,
+          ),
+        );
+      }
+      if (preflight.missingPackageJsonDeps.length) {
+        console.error(
+          chalk.dim(
+            `  Missing package.json deps: ${preflight.missingPackageJsonDeps.join(", ")}`,
+          ),
+        );
+      }
+      console.error(chalk.dim(`  Skill: ${meta.name}`));
+    }
+    process.exit(1);
+  }
 
   const checkPath = meta.scripts?.check
     ? join(skillDir, meta.scripts.check)
@@ -118,7 +171,7 @@ export async function runCmd(
   const runId = randomUUID();
   writeRunArtifacts(runId, meta.name, cwd, plan, guardResult);
 
-  const results = await executePlan(cwd, skillDir, plan);
+  const results = await executePlan(cwd, skillDir, plan, runId);
   const last = results[results.length - 1];
   const success = last ? last.success : true;
   const exitCode = last ? last.exitCode : 0;
@@ -153,6 +206,9 @@ export async function runCmd(
         2,
       ),
     );
+    if (!success) {
+      process.exit(exitCode || 1);
+    }
   } else {
     if (success) {
       console.log(chalk.green("Done."), chalk.dim(`Run ID: ${runId}`));

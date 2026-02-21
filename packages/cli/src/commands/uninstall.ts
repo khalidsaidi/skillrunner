@@ -1,14 +1,18 @@
 import chalk from "chalk";
 import { rmSync, existsSync, readdirSync } from "fs";
 import { join } from "path";
-import { getSkillsDir } from "@skillrunner/engine";
+import { getSkillsDir } from "@khalidsaidi/skillrunner-engine";
+import { shouldUseJson } from "../utils/json.js";
 
 export async function uninstallCmd(
   name: string,
-  _opts: unknown,
-  cmd: { opts: () => { json?: boolean } },
+  opts: { json?: boolean },
+  cmd: {
+    opts?: () => { json?: boolean };
+    parent?: { opts?: () => { json?: boolean } };
+  },
 ): Promise<void> {
-  const json = !!cmd.opts().json;
+  const json = shouldUseJson(opts, cmd);
   const skillsDir = getSkillsDir();
 
   if (!existsSync(skillsDir)) {

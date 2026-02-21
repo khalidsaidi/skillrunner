@@ -1,16 +1,21 @@
 import chalk from "chalk";
-import {
-  readdirSync,
-  readFileSync,
-  existsSync,
-  statSync,
-} from "fs";
+import { readdirSync, readFileSync, existsSync, statSync } from "fs";
 import { join } from "path";
-import { getRunsDir } from "@skillrunner/engine";
+import { getRunsDir } from "@khalidsaidi/skillrunner-engine";
+import { shouldUseJson } from "../utils/json.js";
+
+interface RunListEntry {
+  id: string;
+  skillName?: string;
+  startedAt?: string;
+  [key: string]: unknown;
+}
 
 function getRunIdsByRecent(runsDir: string): string[] {
   const entries = readdirSync(runsDir, { withFileTypes: true })
-    .filter((e) => e.isDirectory())
+    .filter(
+      (e) => e.isDirectory() && existsSync(join(runsDir, e.name, "meta.json")),
+    )
     .map((e) => ({
       name: e.name,
       mtime: statSync(join(runsDir, e.name)).mtimeMs,
@@ -19,10 +24,13 @@ function getRunIdsByRecent(runsDir: string): string[] {
 }
 
 export async function logsCmd(
-  opts: { last?: boolean; id?: string },
-  cmd?: { opts: () => { json?: boolean } },
+  opts: { last?: boolean; id?: string; json?: boolean },
+  cmd?: {
+    opts?: () => { json?: boolean };
+    parent?: { opts?: () => { json?: boolean } };
+  },
 ): Promise<void> {
-  const json = !!cmd?.opts?.()?.json;
+  const json = shouldUseJson(opts, cmd);
   const runsDir = getRunsDir();
 
   if (!existsSync(runsDir)) {
@@ -32,20 +40,27 @@ export async function logsCmd(
   }
 
   const ids = getRunIdsByRecent(runsDir);
+  if (ids.length === 0) {
+    if (json) console.log(JSON.stringify({ runs: [] }, null, 2));
+    else console.log(chalk.dim("No runs yet."));
+    return;
+  }
 
   let targetId = opts.id;
   if (opts.last && ids.length) targetId = ids[0];
   if (!targetId) {
-    const runs = ids.slice(0, 20).map((id) => {
-      try {
-        const metaPath = join(runsDir, id, "meta.json");
-        if (!existsSync(metaPath)) return { id };
-        const meta = JSON.parse(readFileSync(metaPath, "utf-8"));
-        return { id, ...meta };
-      } catch {
-        return { id };
-      }
-    });
+    const runs = ids
+      .slice(0, 20)
+      .map((id) => {
+        try {
+          const metaPath = join(runsDir, id, "meta.json");
+          const meta = JSON.parse(readFileSync(metaPath, "utf-8"));
+          return { id, ...meta } as RunListEntry;
+        } catch {
+          return null;
+        }
+      })
+      .filter((v): v is RunListEntry => Boolean(v));
     if (json) {
       console.log(JSON.stringify({ runs }, null, 2));
     } else {

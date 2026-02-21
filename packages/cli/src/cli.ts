@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from "commander";
+import { createRequire } from "module";
 import { doctorCmd } from "./commands/doctor.js";
 import { listCmd } from "./commands/list.js";
 import { searchCmd } from "./commands/search.js";
@@ -14,11 +15,15 @@ import { openCmd } from "./commands/open.js";
 import { cursorInstallCmd, cursorListCmd } from "./commands/cursor.js";
 
 const program = new Command();
+const require = createRequire(import.meta.url);
+const pkg = require("../package.json") as { version?: string };
+const cliVersion =
+  typeof pkg.version === "string" && pkg.version.trim() ? pkg.version : "0.0.0";
 
 program
   .name("skill")
   .description("SkillRunner — browse, install, and run skills")
-  .version("0.1.0")
+  .version(cliVersion)
   .option("-j, --json", "Output JSON for extension integration");
 
 program

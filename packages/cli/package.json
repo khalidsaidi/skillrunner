@@ -1,12 +1,39 @@
 {
   "name": "@khalidsaidi/skillrunner",
-  "version": "0.1.0",
-  "description": "SkillRunner — user-friendly skill runner (CLI + dashboard)",
+  "version": "0.1.2",
+  "description": "Local-first CLI to discover, install, plan, and safely run reusable engineering skills.",
   "type": "module",
+  "license": "MIT",
+  "homepage": "https://github.com/khalidsaidi/skillrunner#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/khalidsaidi/skillrunner.git"
+  },
+  "bugs": {
+    "url": "https://github.com/khalidsaidi/skillrunner/issues"
+  },
+  "keywords": [
+    "cli",
+    "skills-cli",
+    "automation",
+    "developer-tools",
+    "engineering-workflows",
+    "devops-automation",
+    "local-first",
+    "agent-workflows",
+    "skill-registry",
+    "code-review",
+    "testing",
+    "terraform",
+    "react"
+  ],
   "bin": {
     "skill": "dist/cli.js"
   },
   "main": "dist/cli.js",
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
     "dist"
   ],
@@ -15,7 +42,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@skillrunner/engine": "workspace:*",
+    "@khalidsaidi/skillrunner-engine": "workspace:*",
     "chalk": "^5.3.0",
     "commander": "^12.1.0",
     "ora": "^8.1.0",

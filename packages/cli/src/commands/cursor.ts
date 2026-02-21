@@ -1,7 +1,8 @@
 import chalk from "chalk";
 import { cpSync, existsSync, mkdirSync, readdirSync } from "fs";
 import { join } from "path";
-import { getSkillsDir } from "@skillrunner/engine";
+import { getSkillsDir } from "@khalidsaidi/skillrunner-engine";
+import { shouldUseJson } from "../utils/json.js";
 
 function getCursorSkillsDir(scope: "project" | "global"): string {
   if (scope === "global") {
@@ -12,10 +13,13 @@ function getCursorSkillsDir(scope: "project" | "global"): string {
 
 export async function cursorInstallCmd(
   name: string,
-  opts: { scope?: string },
-  cmd?: { opts: () => { json?: boolean } },
+  opts: { scope?: string; json?: boolean },
+  cmd?: {
+    opts?: () => { json?: boolean };
+    parent?: { opts?: () => { json?: boolean } };
+  },
 ): Promise<void> {
-  const json = !!cmd?.opts?.()?.json;
+  const json = shouldUseJson(opts, cmd);
   const scope = (opts.scope || "project") as "project" | "global";
   const skillsDir = getSkillsDir();
 
@@ -73,10 +77,13 @@ export async function cursorInstallCmd(
 }
 
 export async function cursorListCmd(
-  opts: { scope?: string },
-  cmd?: { opts: () => { json?: boolean } },
+  opts: { scope?: string; json?: boolean },
+  cmd?: {
+    opts?: () => { json?: boolean };
+    parent?: { opts?: () => { json?: boolean } };
+  },
 ): Promise<void> {
-  const json = !!cmd?.opts?.()?.json;
+  const json = shouldUseJson(opts, cmd);
   const scope = (opts.scope || "both") as "project" | "global" | "both";
 
   const dirs: { scope: string; path: string }[] = [];

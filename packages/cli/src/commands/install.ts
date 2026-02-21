@@ -1,46 +1,165 @@
 import chalk from "chalk";
-import { cpSync, mkdirSync, existsSync } from "fs";
-import { join } from "path";
-import { execSync } from "child_process";
 import {
-  fetchRemoteRegistry,
-  loadLocalRegistry,
+  cpSync,
+  mkdirSync,
+  existsSync,
+  rmSync,
+  writeFileSync,
+  chmodSync,
+} from "fs";
+import { dirname, join } from "path";
+import {
   getSkillFromIndex,
+  getRegistrySkillSlug,
   getSkillsDir,
-  REGISTRY_CACHE_DIR,
-  findRegistryRoot,
-} from "@skillrunner/engine";
+  parseSkillMd,
+  resolveRegistryIndex,
+  resolveRegistryRoot,
+  type RegistryIndex,
+  type RegistrySkill,
+} from "@khalidsaidi/skillrunner-engine";
+import { shouldUseJson } from "../utils/json.js";
 
-function ensureRegistryCache(): string {
-  mkdirSync(REGISTRY_CACHE_DIR, { recursive: true });
-  const repoPath = join(REGISTRY_CACHE_DIR, "skillrunner");
-  if (!existsSync(join(repoPath, ".git"))) {
-    execSync(
-      `git clone --depth 1 https://github.com/khalidsaidi/skillrunner.git "${repoPath}"`,
-      { stdio: "inherit" },
+function normalizeRelativePath(path: string): string {
+  return path.replace(/^\.\/+/, "");
+}
+
+function dedupe(values: string[]): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const v of values) {
+    if (seen.has(v)) continue;
+    seen.add(v);
+    out.push(v);
+  }
+  return out;
+}
+
+function isHttpUrl(value: string | undefined): value is string {
+  return typeof value === "string" && /^https?:\/\//i.test(value);
+}
+
+function stripTrailingSlashes(value: string): string {
+  return value.replace(/\/+$/, "");
+}
+
+function buildSkillFileUrls(
+  index: RegistryIndex,
+  skill: RegistrySkill,
+  relativePath: string,
+): string[] {
+  const skillSlug = getRegistrySkillSlug(skill) || skill.name;
+  const normalizedPath = normalizeRelativePath(relativePath);
+  const candidates: string[] = [];
+  const rawSkillMd = skill.paths?.raw_skill_md;
+
+  if (normalizedPath === "SKILL.md" && isHttpUrl(rawSkillMd)) {
+    candidates.push(rawSkillMd);
+  }
+
+  const skillBases: string[] = [];
+  if (isHttpUrl(rawSkillMd) && rawSkillMd.endsWith("/SKILL.md")) {
+    skillBases.push(rawSkillMd.slice(0, -"/SKILL.md".length));
+  }
+  if (isHttpUrl(index.source?.base_url)) {
+    skillBases.push(
+      `${stripTrailingSlashes(index.source.base_url)}/${skillSlug}`,
     );
-  } else {
+  }
+
+  for (const base of dedupe(skillBases)) {
+    candidates.push(`${stripTrailingSlashes(base)}/${normalizedPath}`);
+  }
+
+  return dedupe(candidates);
+}
+
+async function fetchFirstText(
+  urls: string[],
+): Promise<{ url: string; body: string } | null> {
+  for (const url of urls) {
     try {
-      execSync("git pull", { cwd: repoPath, stdio: "pipe" });
+      const res = await fetch(url);
+      if (!res.ok) continue;
+      return { url, body: await res.text() };
     } catch {
-      // ignore pull failures
+      // try next URL
     }
   }
-  return repoPath;
+  return null;
+}
+
+function writeDownloadedFile(
+  destDir: string,
+  relativePath: string,
+  content: string,
+): void {
+  const normalizedPath = normalizeRelativePath(relativePath);
+  const target = join(destDir, normalizedPath);
+  mkdirSync(dirname(target), { recursive: true });
+  writeFileSync(target, content);
+  if (normalizedPath.endsWith(".sh")) {
+    chmodSync(target, 0o755);
+  }
+}
+
+async function installSkillFromRemote(
+  index: RegistryIndex,
+  skill: RegistrySkill,
+  destDir: string,
+): Promise<void> {
+  const skillSlug = getRegistrySkillSlug(skill) || skill.name;
+  const skillMdUrls = buildSkillFileUrls(index, skill, "SKILL.md");
+  const skillMd = await fetchFirstText(skillMdUrls);
+  if (!skillMd) {
+    throw new Error(`Could not download SKILL.md for ${skillSlug}`);
+  }
+
+  writeDownloadedFile(destDir, "SKILL.md", skillMd.body);
+  const meta = parseSkillMd(skillMd.body);
+
+  const requiredScripts = new Set<string>();
+  if (meta.scripts?.check) {
+    requiredScripts.add(normalizeRelativePath(meta.scripts.check));
+  }
+  if (meta.scripts?.run) {
+    requiredScripts.add(normalizeRelativePath(meta.scripts.run));
+  }
+
+  const optionalScripts = ["scripts/check.sh", "scripts/run.sh"].filter(
+    (p) => !requiredScripts.has(p),
+  );
+
+  const scriptPaths = [...requiredScripts, ...optionalScripts];
+  for (const scriptPath of scriptPaths) {
+    const scriptUrls = buildSkillFileUrls(index, skill, scriptPath);
+    const script = await fetchFirstText(scriptUrls);
+    if (!script) {
+      if (requiredScripts.has(scriptPath)) {
+        throw new Error(
+          `Could not download required script "${scriptPath}" for ${skillSlug}`,
+        );
+      }
+      continue;
+    }
+
+    writeDownloadedFile(destDir, scriptPath, script.body);
+  }
 }
 
 export async function installCmd(
   name: string,
-  _opts: unknown,
-  cmd: { opts: () => { json?: boolean } },
+  opts: { json?: boolean },
+  cmd: {
+    opts?: () => { json?: boolean };
+    parent?: { opts?: () => { json?: boolean } };
+  },
 ): Promise<void> {
-  const json = !!cmd.opts().json;
+  const json = shouldUseJson(opts, cmd);
 
   let index;
   try {
-    const repoRoot = findRegistryRoot();
-    index = repoRoot ? loadLocalRegistry(repoRoot) : null;
-    index = index ?? (await fetchRemoteRegistry());
+    index = await resolveRegistryIndex();
   } catch (e) {
     if (json) {
       console.log(
@@ -74,44 +193,56 @@ export async function installCmd(
 
   const skillsDir = getSkillsDir();
   mkdirSync(skillsDir, { recursive: true });
-  const destDir = join(skillsDir, `${skill.name}@${skill.version || "latest"}`);
+  const skillSlug = getRegistrySkillSlug(skill) || skill.name;
+  const destDir = join(skillsDir, `${skillSlug}@${skill.version || "latest"}`);
+  rmSync(destDir, { recursive: true, force: true });
 
-  let sourceDir: string;
-  const repoRoot = findRegistryRoot();
-  if (repoRoot) {
-    sourceDir = join(repoRoot, "registry", "skills", skill.name);
-  } else {
-    const cacheRoot = ensureRegistryCache();
-    sourceDir = join(cacheRoot, "registry", "skills", skill.name);
-  }
+  try {
+    const repoRoot = resolveRegistryRoot();
+    const sourceDir = repoRoot
+      ? join(repoRoot, "registry", "skills", skillSlug)
+      : "";
 
-  if (!existsSync(sourceDir)) {
+    if (sourceDir && existsSync(sourceDir)) {
+      cpSync(sourceDir, destDir, { recursive: true });
+    } else {
+      await installSkillFromRemote(index, skill, destDir);
+    }
+  } catch (e) {
+    rmSync(destDir, { recursive: true, force: true });
     if (json) {
       console.log(
         JSON.stringify(
-          { success: false, error: `Skill dir not found: ${skill.name}` },
+          {
+            success: false,
+            error: `Install failed: ${(e as Error).message}`,
+          },
           null,
           2,
         ),
       );
     } else {
-      console.error(
-        chalk.red("Skill directory not found in registry:"),
-        skill.name,
-      );
+      console.error(chalk.red("Install failed:"), (e as Error).message);
     }
     process.exit(1);
   }
 
-  cpSync(sourceDir, destDir, { recursive: true });
-
   if (json) {
-    console.log(JSON.stringify({ success: true, path: destDir }, null, 2));
-  } else {
     console.log(
-      chalk.green("Installed:"),
-      skill.name,
-      chalk.dim(`→ ${destDir}`),
+      JSON.stringify(
+        {
+          success: true,
+          name: skill.name,
+          slug: skillSlug,
+          path: destDir,
+        },
+        null,
+        2,
+      ),
     );
+  } else {
+    const label =
+      skillSlug === skill.name ? skill.name : `${skill.name} (${skillSlug})`;
+    console.log(chalk.green("Installed:"), label, chalk.dim(`→ ${destDir}`));
   }
 }

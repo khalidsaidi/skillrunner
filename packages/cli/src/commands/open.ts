@@ -1,11 +1,16 @@
 import chalk from "chalk";
 import { spawn } from "child_process";
 import { platform } from "os";
+import { shouldUseJson } from "../utils/json.js";
 
-export async function openCmd(this: {
-  opts: () => { json?: boolean };
-}): Promise<void> {
-  const json = !!this.opts().json;
+export async function openCmd(
+  opts: { json?: boolean },
+  cmd: {
+    opts?: () => { json?: boolean };
+    parent?: { opts?: () => { json?: boolean } };
+  },
+): Promise<void> {
+  const json = shouldUseJson(opts, cmd);
   const url = "http://localhost:5173";
 
   if (json) {

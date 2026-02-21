@@ -1,17 +1,20 @@
 import chalk from "chalk";
 import { execSync } from "child_process";
 import {
-  fetchRemoteRegistry,
-  loadLocalRegistry,
+  resolveRegistryIndex,
   getSkillsDir,
   getRunsDir,
-  findRegistryRoot,
-} from "@skillrunner/engine";
+} from "@khalidsaidi/skillrunner-engine";
+import { shouldUseJson } from "../utils/json.js";
 
-export async function doctorCmd(this: {
-  opts: () => { json?: boolean };
-}): Promise<void> {
-  const json = !!this.opts().json;
+export async function doctorCmd(
+  opts: { json?: boolean },
+  cmd: {
+    opts?: () => { json?: boolean };
+    parent?: { opts?: () => { json?: boolean } };
+  },
+): Promise<void> {
+  const json = shouldUseJson(opts, cmd);
 
   const results: Record<string, unknown> = {
     node: null as string | null,
@@ -41,9 +44,7 @@ export async function doctorCmd(this: {
   }
 
   try {
-    const repoRoot = findRegistryRoot();
-    const idx = repoRoot ? loadLocalRegistry(repoRoot) : null;
-    const index = idx ?? (await fetchRemoteRegistry());
+    const index = await resolveRegistryIndex();
     results.registry = index ? "ok" : null;
   } catch (e) {
     results.registry = (e as Error).message;

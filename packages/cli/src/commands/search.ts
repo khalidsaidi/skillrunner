@@ -1,23 +1,23 @@
 import chalk from "chalk";
 import {
-  fetchRemoteRegistry,
-  loadLocalRegistry,
+  resolveRegistryIndex,
   searchRegistry,
-  findRegistryRoot,
-} from "@skillrunner/engine";
+} from "@khalidsaidi/skillrunner-engine";
+import { shouldUseJson } from "../utils/json.js";
 
 export async function searchCmd(
   query: string,
-  _opts: unknown,
-  cmd: { opts: () => { json?: boolean } },
+  opts: { json?: boolean },
+  cmd: {
+    opts?: () => { json?: boolean };
+    parent?: { opts?: () => { json?: boolean } };
+  },
 ): Promise<void> {
-  const json = !!cmd.opts().json;
+  const json = shouldUseJson(opts, cmd);
 
   let index;
   try {
-    const repoRoot = findRegistryRoot();
-    index = repoRoot ? loadLocalRegistry(repoRoot) : null;
-    index = index ?? (await fetchRemoteRegistry());
+    index = await resolveRegistryIndex();
   } catch (e) {
     if (json) {
       console.log(
@@ -38,8 +38,11 @@ export async function searchCmd(
 
   console.log(chalk.bold(`Search: "${query || ""}"\n`));
   for (const s of hits) {
-    const risk = s.risk ? chalk.dim(` [${s.risk}]`) : "";
-    console.log(`  ${chalk.cyan(s.name)}${risk}`);
+    const risk = s.risk || "low";
+    const availability = s.availability || "default";
+    console.log(
+      `  ${chalk.cyan(s.name)}${chalk.dim(` [${risk}|${availability}]`)}`,
+    );
     console.log(`    ${s.description}`);
   }
 }

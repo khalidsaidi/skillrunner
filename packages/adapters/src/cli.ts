@@ -1,6 +1,6 @@
 /**
  * CLI adapter stub.
- * Future: thin wrapper over @skillrunner/engine for programmatic invocation.
+ * Future: thin wrapper over @khalidsaidi/skillrunner-engine for programmatic invocation.
  */
 import type { ProviderAdapter, SkillContext, RunResult } from "./types.js";
 
