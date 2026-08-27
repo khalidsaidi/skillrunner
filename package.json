@@ -13,7 +13,8 @@
     "test": "vitest run --passWithNoTests",
     "format:check": "prettier --check .",
     "registry:build": "pnpm --filter registry-tools build && node packages/registry-tools/dist/build.js",
-    "registry:validate": "pnpm --filter registry-tools build && node packages/registry-tools/dist/validate.js"
+    "registry:validate": "pnpm --filter registry-tools build && node packages/registry-tools/dist/validate.js",
+    "registry:sync-upstream": "pnpm --filter registry-tools build && node packages/registry-tools/dist/sync-upstream.js"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.10",

@@ -28,11 +28,13 @@ skill logs --last
 
 ## Current catalog snapshot
 
-- 25 total skills
+- 73 total skills
 - 14 automation skills
-- 11 knowledge skills
-- 10 default-enabled skills
-- 4 packs
+- 59 knowledge skills
+- 25 default-enabled skills
+- 48 advanced skills
+- 3 packs
+- Source mix: 25 native SkillRunner + 32 OpenAI upstream + 16 Anthropic upstream
 
 ## Core commands
 

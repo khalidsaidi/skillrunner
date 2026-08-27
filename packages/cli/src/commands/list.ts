@@ -1,8 +1,10 @@
 import chalk from "chalk";
-import { readdirSync, existsSync, readFileSync } from "fs";
+import { readdirSync, existsSync } from "fs";
 import { join } from "path";
-import { parseSkillMd } from "@khalidsaidi/skillrunner-engine";
-import { getSkillsDir } from "@khalidsaidi/skillrunner-engine";
+import {
+  loadSkillMetaFromDir,
+  getSkillsDir,
+} from "@khalidsaidi/skillrunner-engine";
 import { shouldUseJson } from "../utils/json.js";
 
 export async function listCmd(
@@ -24,23 +26,21 @@ export async function listCmd(
   if (existsSync(skillsDir)) {
     for (const entry of readdirSync(skillsDir, { withFileTypes: true })) {
       if (entry.isDirectory()) {
-        const skillMd = join(skillsDir, entry.name, "SKILL.md");
-        if (existsSync(skillMd)) {
-          try {
-            const meta = parseSkillMd(readFileSync(skillMd, "utf-8"));
-            skills.push({
-              name: meta.name,
-              version: meta.version,
-              description: meta.description,
-              availability: meta.availability,
-            });
-          } catch {
-            skills.push({
-              name: entry.name,
-              version: undefined,
-              description: undefined,
-            });
-          }
+        const skillDir = join(skillsDir, entry.name);
+        try {
+          const loaded = loadSkillMetaFromDir(skillDir);
+          skills.push({
+            name: loaded.meta.name,
+            version: loaded.meta.version,
+            description: loaded.meta.description,
+            availability: loaded.meta.availability,
+          });
+        } catch {
+          skills.push({
+            name: entry.name,
+            version: undefined,
+            description: undefined,
+          });
         }
       }
     }

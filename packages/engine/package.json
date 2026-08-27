@@ -1,6 +1,7 @@
 {
   "name": "@khalidsaidi/skillrunner-engine",
   "version": "0.1.0",
+  "private": true,
   "description": "Core runtime engine for SkillRunner CLI",
   "type": "module",
   "license": "MIT",
@@ -14,9 +15,6 @@
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "publishConfig": {
-    "access": "public"
-  },
   "files": [
     "dist"
   ],

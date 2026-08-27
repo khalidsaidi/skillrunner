@@ -1,8 +1,8 @@
 import chalk from "chalk";
-import { existsSync, readFileSync, readdirSync } from "fs";
+import { existsSync, readdirSync } from "fs";
 import { join } from "path";
 import {
-  parseSkillMd,
+  loadSkillMetaFromDir,
   buildPlan,
   getSkillsDir,
 } from "@khalidsaidi/skillrunner-engine";
@@ -45,21 +45,26 @@ export async function planCmd(
     process.exit(1);
   }
 
-  const skillMd = join(skillDir, "SKILL.md");
-  if (!existsSync(skillMd)) {
+  let loaded: ReturnType<typeof loadSkillMetaFromDir> | null = null;
+  try {
+    loaded = loadSkillMetaFromDir(skillDir);
+  } catch (e) {
     if (json) {
       console.log(
         JSON.stringify(
-          { success: false, error: "SKILL.md not found" },
+          { success: false, error: (e as Error).message },
           null,
           2,
         ),
       );
-    } else console.error(chalk.red("SKILL.md not found"));
+    } else {
+      console.error(chalk.red((e as Error).message));
+    }
     process.exit(1);
   }
+  if (!loaded) process.exit(1);
 
-  const meta = parseSkillMd(readFileSync(skillMd, "utf-8"));
+  const meta = loaded.meta;
   const plan = buildPlan(skillDir, meta);
 
   if (json) {

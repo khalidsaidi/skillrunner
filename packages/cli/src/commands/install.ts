@@ -12,7 +12,8 @@ import {
   getSkillFromIndex,
   getRegistrySkillSlug,
   getSkillsDir,
-  parseSkillMd,
+  inferSkillContractType,
+  parseSkillContract,
   resolveRegistryIndex,
   resolveRegistryRoot,
   type RegistryIndex,
@@ -22,6 +23,20 @@ import { shouldUseJson } from "../utils/json.js";
 
 function normalizeRelativePath(path: string): string {
   return path.replace(/^\.\/+/, "");
+}
+
+function toSkillRelativePath(path: string, skillSlug: string): string {
+  const normalized = normalizeRelativePath(path);
+  const canonicalPrefix = `registry/skills/${skillSlug}/`;
+  if (normalized.startsWith(canonicalPrefix)) {
+    return normalized.slice(canonicalPrefix.length);
+  }
+  const slugMarker = `/${skillSlug}/`;
+  const markerIndex = normalized.lastIndexOf(slugMarker);
+  if (markerIndex >= 0) {
+    return normalized.slice(markerIndex + slugMarker.length);
+  }
+  return normalized;
 }
 
 function dedupe(values: string[]): string[] {
@@ -49,15 +64,31 @@ function buildSkillFileUrls(
   relativePath: string,
 ): string[] {
   const skillSlug = getRegistrySkillSlug(skill) || skill.name;
-  const normalizedPath = normalizeRelativePath(relativePath);
+  const normalizedPath = toSkillRelativePath(relativePath, skillSlug);
+  const contractPath = toSkillRelativePath(
+    skill.paths?.contract || skill.paths?.skill_md || "SKILL.md",
+    skillSlug,
+  );
   const candidates: string[] = [];
   const rawSkillMd = skill.paths?.raw_skill_md;
+  const rawContract = skill.paths?.raw_contract || rawSkillMd;
 
+  if (normalizedPath === contractPath && isHttpUrl(rawContract)) {
+    candidates.push(rawContract);
+  }
   if (normalizedPath === "SKILL.md" && isHttpUrl(rawSkillMd)) {
     candidates.push(rawSkillMd);
   }
 
   const skillBases: string[] = [];
+  if (
+    isHttpUrl(rawContract) &&
+    rawContract.endsWith(`/${normalizeRelativePath(contractPath)}`)
+  ) {
+    skillBases.push(
+      rawContract.slice(0, -`/${normalizeRelativePath(contractPath)}`.length),
+    );
+  }
   if (isHttpUrl(rawSkillMd) && rawSkillMd.endsWith("/SKILL.md")) {
     skillBases.push(rawSkillMd.slice(0, -"/SKILL.md".length));
   }
@@ -109,14 +140,24 @@ async function installSkillFromRemote(
   destDir: string,
 ): Promise<void> {
   const skillSlug = getRegistrySkillSlug(skill) || skill.name;
-  const skillMdUrls = buildSkillFileUrls(index, skill, "SKILL.md");
-  const skillMd = await fetchFirstText(skillMdUrls);
-  if (!skillMd) {
-    throw new Error(`Could not download SKILL.md for ${skillSlug}`);
+  const contractRelativePath = toSkillRelativePath(
+    skill.paths?.contract || skill.paths?.skill_md || "SKILL.md",
+    skillSlug,
+  );
+  const contractUrls = buildSkillFileUrls(index, skill, contractRelativePath);
+  const contractFile = await fetchFirstText(contractUrls);
+  if (!contractFile) {
+    throw new Error(
+      `Could not download contract "${contractRelativePath}" for ${skillSlug}`,
+    );
   }
 
-  writeDownloadedFile(destDir, "SKILL.md", skillMd.body);
-  const meta = parseSkillMd(skillMd.body);
+  writeDownloadedFile(destDir, contractRelativePath, contractFile.body);
+  const meta = parseSkillContract(contractFile.body, {
+    contractType: inferSkillContractType(contractRelativePath),
+    sourcePath: contractRelativePath,
+    fallbackName: skill.name,
+  });
 
   const requiredScripts = new Set<string>();
   if (meta.scripts?.check) {

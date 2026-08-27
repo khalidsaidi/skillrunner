@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
 set -e
-[[ -f package.json ]] || { echo "No package.json"; exit 1; }
-[[ -f tsconfig.json ]] || [[ -f tsconfig.base.json ]] || { echo "No tsconfig"; exit 1; }
+if [[ ! -f package.json ]]; then
+  echo "package.json not found; run-typecheck will bootstrap Node context."
+fi
+if [[ ! -f tsconfig.json ]] && [[ ! -f tsconfig.base.json ]]; then
+  echo "TypeScript config not found; run-typecheck will scaffold tsconfig.json."
+fi

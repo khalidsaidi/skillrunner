@@ -1,3 +1,5 @@
 #!/usr/bin/env bash
 set -e
-[[ -d .git ]] || { echo "Not a git repo"; exit 1; }
+if [[ ! -d .git ]]; then
+  echo "Git repository not found; git-status-report will bootstrap git context."
+fi

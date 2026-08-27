@@ -4,7 +4,7 @@ Core runtime engine used by `@khalidsaidi/skillrunner`.
 
 This package powers:
 
-- SKILL.md parsing
+- multi-contract skill parsing (`SKILL.md`, `skill.yaml/yml`, `skill.json`, `AGENT*.md`, `CLAUDE.md`, `README.md`)
 - registry resolution/search/install support
 - run planning and execution
 - script guardrails

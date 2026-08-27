@@ -5,14 +5,16 @@
   "type": "module",
   "bin": {
     "build-registry-index": "./dist/build.js",
-    "validate-registry": "./dist/validate.js"
+    "validate-registry": "./dist/validate.js",
+    "sync-upstream-skills": "./dist/sync-upstream.js"
   },
   "scripts": {
     "build": "tsc",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "sync:upstream": "tsc && node dist/sync-upstream.js"
   },
   "dependencies": {
-    "gray-matter": "^4.0.3"
+    "@khalidsaidi/skillrunner-engine": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.17.0",

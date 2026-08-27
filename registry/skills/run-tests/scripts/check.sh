@@ -1,3 +1,5 @@
 #!/usr/bin/env bash
 set -e
-[[ -f package.json ]] || { echo "No package.json"; exit 1; }
+if [[ ! -f package.json ]]; then
+  echo "package.json not found; run-tests will bootstrap Node context."
+fi

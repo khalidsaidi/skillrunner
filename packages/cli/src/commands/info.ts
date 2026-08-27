@@ -2,10 +2,10 @@ import chalk from "chalk";
 import {
   resolveRegistryIndex,
   getSkillFromIndex,
-  parseSkillMd,
+  loadSkillMetaFromDir,
   getSkillsDir,
 } from "@khalidsaidi/skillrunner-engine";
-import { existsSync, readFileSync, readdirSync } from "fs";
+import { existsSync, readdirSync } from "fs";
 import { join } from "path";
 import { shouldUseJson } from "../utils/json.js";
 
@@ -33,28 +33,33 @@ export async function infoCmd(
   const json = shouldUseJson(opts, cmd);
   let skill;
   const localPath = findInstalledSkillDir(name);
-  if (localPath && existsSync(join(localPath, "SKILL.md"))) {
-    const meta = parseSkillMd(
-      readFileSync(join(localPath, "SKILL.md"), "utf-8"),
-    );
-    skill = {
-      name: meta.name,
-      description: meta.description,
-      version: meta.version,
-      tags: meta.tags,
-      kind: meta.kind,
-      risk: meta.risk,
-      availability: meta.availability,
-      prerequisites: meta.prerequisites,
-      capabilities: meta.capabilities,
-      scripts: meta.scripts,
-      inputs: meta.inputs,
-      paths: {
-        dir: localPath,
-        skill_md: join(localPath, "SKILL.md"),
-        raw_skill_md: "",
-      },
-    };
+  if (localPath) {
+    try {
+      const loaded = loadSkillMetaFromDir(localPath);
+      skill = {
+        name: loaded.meta.name,
+        description: loaded.meta.description,
+        version: loaded.meta.version,
+        tags: loaded.meta.tags,
+        kind: loaded.meta.kind,
+        risk: loaded.meta.risk,
+        availability: loaded.meta.availability,
+        prerequisites: loaded.meta.prerequisites,
+        capabilities: loaded.meta.capabilities,
+        scripts: loaded.meta.scripts,
+        inputs: loaded.meta.inputs,
+        contract: loaded.contract,
+        paths: {
+          dir: localPath,
+          skill_md: join(localPath, loaded.contract.file),
+          raw_skill_md: "",
+          contract: join(localPath, loaded.contract.file),
+          raw_contract: "",
+        },
+      };
+    } catch {
+      // fall through to registry lookup
+    }
   }
 
   if (!skill) {

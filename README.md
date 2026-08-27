@@ -6,7 +6,7 @@ State-of-the-art npm CLI for discoverable, safe, reusable engineering skills.
 npm i -g @khalidsaidi/skillrunner
 ```
 
-- Build with a curated catalog: **25 skills** (**14 automation**, **11 knowledge**)
+- Build with a curated catalog: **73 skills** (**14 automation**, **59 knowledge**)
 - Run with guardrails: **plan preview**, **preflight checks**, and **script safety blocks**
 - Ship with confidence: CI on every push/PR, registry publish on `main` catalog changes, and nightly matrix validation at **06:00 UTC**
 
@@ -41,18 +41,18 @@ skill logs --last
 
 Current curated snapshot:
 
-- **25 total skills**
+- **73 total skills**
 - **14 automation skills**
-- **11 knowledge skills**
-- **10 default-enabled skills**
-- **3 advanced skills**
-- **12 conditional skills**
-- **4 packs**
+- **59 knowledge skills**
+- **25 default-enabled skills**
+- **48 advanced skills**
+- **3 packs**
+- **Source mix:** 25 native SkillRunner + 32 OpenAI upstream + 16 Anthropic upstream
 - **Freshness marker:** `registry/dist/index.json` includes `generated_at`
 
 ## Supported skills
 
-Automation skills (14):
+Native SkillRunner automation skills (14):
 
 - `node-doctor`
 - `repo-bootstrap`
@@ -69,7 +69,7 @@ Automation skills (14):
 - `git-status-report`
 - `changelog-from-commits`
 
-Knowledge skills (11):
+Native SkillRunner knowledge skills (11):
 
 - `code-review-checklist`
 - `debugging-playbook`
@@ -82,6 +82,60 @@ Knowledge skills (11):
 - `security-hygiene`
 - `terraform-structure`
 - `testing-playbook`
+
+Imported OpenAI skills (32):
+
+- `openai-cloudflare-deploy`
+- `openai-develop-web-game`
+- `openai-doc`
+- `openai-figma`
+- `openai-figma-implement-design`
+- `openai-gh-address-comments`
+- `openai-gh-fix-ci`
+- `openai-imagegen`
+- `openai-jupyter-notebook`
+- `openai-linear`
+- `openai-netlify-deploy`
+- `openai-notion-knowledge-capture`
+- `openai-notion-meeting-intelligence`
+- `openai-notion-research-documentation`
+- `openai-notion-spec-to-implementation`
+- `openai-openai-docs`
+- `openai-pdf`
+- `openai-playwright`
+- `openai-render-deploy`
+- `openai-screenshot`
+- `openai-security-best-practices`
+- `openai-security-ownership-map`
+- `openai-security-threat-model`
+- `openai-sentry`
+- `openai-skill-creator`
+- `openai-skill-installer`
+- `openai-sora`
+- `openai-speech`
+- `openai-spreadsheet`
+- `openai-transcribe`
+- `openai-vercel-deploy`
+- `openai-yeet`
+
+Imported Anthropic skills (16):
+
+- `anthropic-algorithmic-art`
+- `anthropic-brand-guidelines`
+- `anthropic-canvas-design`
+- `anthropic-doc-coauthoring`
+- `anthropic-docx`
+- `anthropic-frontend-design`
+- `anthropic-internal-comms`
+- `anthropic-mcp-builder`
+- `anthropic-pdf`
+- `anthropic-pptx`
+- `anthropic-skill-creator`
+- `anthropic-slack-gif-creator`
+- `anthropic-theme-factory`
+- `anthropic-web-artifacts-builder`
+- `anthropic-webapp-testing`
+- `anthropic-xlsx`
 
 ## Core commands
 
@@ -111,7 +165,15 @@ Run artifacts are stored in:
 
 ## Skill metadata
 
-Skills are directories with `SKILL.md` (frontmatter + markdown) and optional scripts.
+Skills are directories with a supported contract file plus optional scripts.
+
+Supported contract files:
+
+- `SKILL.md` / `skill.md`
+- `skill.yaml` / `skill.yml`
+- `skill.json`
+- `AGENT.md` / `AGENTS.md` / `CLAUDE.md`
+- `README.md` (fallback)
 
 Important metadata fields:
 
@@ -161,6 +223,7 @@ skill cursor list --scope both
 pnpm install
 pnpm build
 pnpm test
+pnpm registry:sync-upstream
 pnpm registry:validate
 pnpm registry:build
 ```

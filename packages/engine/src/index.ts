@@ -2,6 +2,7 @@ export * from "./types.js";
 export * from "./parser.js";
 export * from "./registry.js";
 export * from "./guard.js";
+export * from "./preflight.js";
 export * from "./planner.js";
 export * from "./runner.js";
 export * from "./artifacts.js";

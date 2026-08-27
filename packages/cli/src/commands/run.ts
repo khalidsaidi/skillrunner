@@ -1,9 +1,9 @@
 import chalk from "chalk";
-import { existsSync, readFileSync, readdirSync } from "fs";
+import { existsSync, readdirSync } from "fs";
 import { join } from "path";
 import prompts from "prompts";
 import {
-  parseSkillMd,
+  loadSkillMetaFromDir,
   buildPlan,
   scanScriptForBannedPatterns,
   blockMessage,
@@ -59,21 +59,25 @@ export async function runCmd(
     process.exit(1);
   }
 
-  const skillMd = join(skillDir, "SKILL.md");
-  if (!existsSync(skillMd)) {
-    if (json)
+  let metaResult: ReturnType<typeof loadSkillMetaFromDir> | null = null;
+  try {
+    metaResult = loadSkillMetaFromDir(skillDir);
+  } catch (e) {
+    if (json) {
       console.log(
         JSON.stringify(
-          { success: false, error: "SKILL.md not found" },
+          { success: false, error: (e as Error).message },
           null,
           2,
         ),
       );
-    else console.error(chalk.red("SKILL.md not found"));
+    } else {
+      console.error(chalk.red((e as Error).message));
+    }
     process.exit(1);
   }
-
-  const meta = parseSkillMd(readFileSync(skillMd, "utf-8"));
+  if (!metaResult) process.exit(1);
+  const meta = metaResult.meta;
   const plan = buildPlan(skillDir, meta);
   const preflight = checkSkillPrerequisites(meta, cwd);
 
@@ -171,10 +175,13 @@ export async function runCmd(
   const runId = randomUUID();
   writeRunArtifacts(runId, meta.name, cwd, plan, guardResult);
 
-  const results = await executePlan(cwd, skillDir, plan, runId);
+  const results = await executePlan(cwd, skillDir, plan);
   const last = results[results.length - 1];
   const success = last ? last.success : true;
   const exitCode = last ? last.exitCode : 0;
+  const failureMessage = !success
+    ? (last?.stderr?.trim() || last?.stdout?.trim() || "Skill script failed")
+    : undefined;
 
   writeRunArtifacts(
     runId,
@@ -199,6 +206,7 @@ export async function runCmd(
           success,
           runId,
           exitCode,
+          error: failureMessage,
           stdout: last?.stdout,
           stderr: last?.stderr,
         },
@@ -214,7 +222,7 @@ export async function runCmd(
       console.log(chalk.green("Done."), chalk.dim(`Run ID: ${runId}`));
     } else {
       console.error(chalk.red("Failed."), chalk.dim(`Run ID: ${runId}`));
-      if (last?.stderr) console.error(chalk.dim(last.stderr));
+      if (failureMessage) console.error(chalk.dim(failureMessage));
       process.exit(exitCode || 1);
     }
   }

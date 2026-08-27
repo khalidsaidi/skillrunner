@@ -9,7 +9,11 @@ import {
 } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
-import matter from "gray-matter";
+import {
+  findSkillContractFile,
+  parseSkillContract,
+  type RegistrySkill,
+} from "@khalidsaidi/skillrunner-engine";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(__dirname, "../../..");
@@ -19,32 +23,33 @@ const DIST_DIR = join(REPO_ROOT, "registry", "dist");
 const BASE_URL =
   "https://raw.githubusercontent.com/khalidsaidi/skillrunner/main/registry/skills";
 
-interface SkillMeta {
-  name: string;
-  description: string;
-  version?: string;
-  tags?: string[];
-  kind?: string;
-  risk?: string;
-  capabilities?: Record<string, boolean>;
-  scripts?: Record<string, string>;
-  inputs?: Record<string, unknown>;
-}
-
 function buildIndex(): void {
-  const skills: Record<string, unknown>[] = [];
+  const skills: RegistrySkill[] = [];
   if (!existsSync(SKILLS_DIR)) {
     mkdirSync(SKILLS_DIR, { recursive: true });
   } else {
     for (const name of readdirSync(SKILLS_DIR, { withFileTypes: true })) {
       if (!name.isDirectory()) continue;
       const skillDir = join(SKILLS_DIR, name.name);
-      const skillMd = join(skillDir, "SKILL.md");
-      if (!existsSync(skillMd)) continue;
-      const content = readFileSync(skillMd, "utf-8");
-      const { data } = matter(content);
-      const meta = data as SkillMeta;
-      if (!meta.name || !meta.description) continue;
+
+      const contract = findSkillContractFile(skillDir);
+      if (!contract) continue;
+
+      const contractPath = join(skillDir, contract.file);
+      const content = readFileSync(contractPath, "utf-8");
+      let meta;
+      try {
+        meta = parseSkillContract(content, {
+          contractType: contract.type,
+          sourcePath: contract.file,
+          fallbackName: name.name,
+        });
+      } catch {
+        continue;
+      }
+
+      const contractRepoPath = `registry/skills/${name.name}/${contract.file}`;
+      const contractRawPath = `${BASE_URL}/${name.name}/${contract.file}`;
       skills.push({
         name: meta.name,
         description: meta.description,
@@ -52,13 +57,21 @@ function buildIndex(): void {
         tags: meta.tags,
         kind: meta.kind,
         risk: meta.risk,
+        availability: meta.availability,
+        prerequisites: meta.prerequisites,
         capabilities: meta.capabilities,
         scripts: meta.scripts,
         inputs: meta.inputs,
+        contract: {
+          type: contract.type,
+          file: contract.file,
+        },
         paths: {
           dir: `registry/skills/${name.name}`,
-          skill_md: `registry/skills/${name.name}/SKILL.md`,
-          raw_skill_md: `${BASE_URL}/${name.name}/SKILL.md`,
+          skill_md: contractRepoPath,
+          raw_skill_md: contractRawPath,
+          contract: contractRepoPath,
+          raw_contract: contractRawPath,
         },
       });
     }
