@@ -15,8 +15,8 @@ jobs:
       - run: pnpm install
       - run: pnpm run format:check
       - run: pnpm run lint
-      - run: pnpm run typecheck
       - run: pnpm run build
+      - run: pnpm run typecheck
       - run: pnpm registry:validate
       - run: pnpm registry:build
       - run: pnpm test
