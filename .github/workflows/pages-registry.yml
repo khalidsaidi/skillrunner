@@ -20,6 +20,7 @@ jobs:
           node-version: 20
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @khalidsaidi/skillrunner-engine build
       - run: pnpm registry:build
       - uses: actions/upload-pages-artifact@v3
         with:
