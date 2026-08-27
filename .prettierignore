@@ -6,3 +6,4 @@ coverage
 pnpm-lock.yaml
 registry/dist
 .ai
+registry/skills

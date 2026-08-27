@@ -1,0 +1,9 @@
+name: react
+description: React development
+skills:
+  - react-maintenance-upgrade
+  - run-tests
+  - run-build
+  - run-typecheck
+  - debugging-playbook
+  - react-patterns

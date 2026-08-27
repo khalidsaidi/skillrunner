@@ -1,0 +1,19 @@
+{
+  "name": "@khalidsaidi/skillrunner-registry-tools",
+  "version": "0.1.3",
+  "description": "Build and validate the SkillRunner registry index.",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "registry:build": "node src/build-index.mjs",
+    "registry:validate": "node src/validate.mjs"
+  },
+  "dependencies": {
+    "gray-matter": "^4.0.3",
+    "yaml": "^2.6.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
