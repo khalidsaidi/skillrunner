@@ -13,6 +13,8 @@ import { runCmd } from "./commands/run.js";
 import { logsCmd } from "./commands/logs.js";
 import { openCmd } from "./commands/open.js";
 import { cursorInstallCmd, cursorListCmd } from "./commands/cursor.js";
+import { exportCmd } from "./commands/export.js";
+import { auditCmd } from "./commands/audit.js";
 
 const program = new Command();
 const require = createRequire(import.meta.url);
@@ -22,7 +24,9 @@ const cliVersion =
 
 program
   .name("skill")
-  .description("SkillRunner — browse, install, and run skills")
+  .description(
+    "SkillRunner — audit, safely run, and export SKILL.md skills across Claude Code, Codex, Cursor, and opencode",
+  )
   .version(cliVersion)
   .option("-j, --json", "Output JSON for extension integration");
 
@@ -47,9 +51,12 @@ program
   .description("Show skill details")
   .action(infoCmd);
 program
-  .command("install <name>")
+  .command("install <source>")
   .option("--json")
-  .description("Install skill")
+  .option("--yes", "Skip confirmation for remote installs")
+  .description(
+    "Install a skill from the registry, a GitHub repo path (owner/repo[/path]), or a SKILL.md URL — remote sources are audited first",
+  )
   .action(installCmd);
 program
   .command("uninstall <name>")
@@ -67,10 +74,11 @@ program
   .option("--json")
   .description("Run skill")
   .option("--yes", "Skip confirmation")
-  .option("--inputs <pairs...>", "input k=v")
+  .option(
+    "--inputs <pairs...>",
+    "input k=v (exposed to scripts as INPUT_<NAME> env vars)",
+  )
   .option("--cwd <dir>", "Working directory")
-  .option("--allow-dirty", "Allow dirty repo")
-  .option("--no-branch", "Do not create branch")
   .action(runCmd);
 program
   .command("logs")
@@ -82,8 +90,25 @@ program
 program
   .command("open")
   .option("--json")
-  .description("Open dashboard")
+  .description("Open dashboard (repo checkout only)")
   .action(openCmd);
+program
+  .command("export <target> <names...>")
+  .option("--json")
+  .option("--scope <scope>", "global|project", "global")
+  .option("--out <dir>", "Export into a custom directory")
+  .option("--force", "Overwrite existing exported skills")
+  .description(
+    "Export skills as spec-pure SKILL.md directories for claude, codex, cursor, or opencode",
+  )
+  .action(exportCmd);
+program
+  .command("audit [target]")
+  .option("--json")
+  .description(
+    "Static-audit skills for risky patterns — a skills directory (e.g. ~/.claude/skills), an installed skill name, or everything installed",
+  )
+  .action(auditCmd);
 const cursorCmd = new Command("cursor").description("Cursor integration");
 cursorCmd
   .command("install <name>")

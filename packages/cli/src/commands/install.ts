@@ -2,20 +2,31 @@ import chalk from "chalk";
 import {
   cpSync,
   mkdirSync,
+  mkdtempSync,
   existsSync,
   rmSync,
   writeFileSync,
   chmodSync,
 } from "fs";
+import { tmpdir } from "os";
 import { dirname, join } from "path";
+import prompts from "prompts";
 import {
+  auditSkillDir,
+  buildPlan,
+  fetchSkillFromGitHub,
+  fetchSkillFromUrl,
   getSkillFromIndex,
   getRegistrySkillSlug,
   getSkillsDir,
   inferSkillContractType,
+  loadSkillMetaFromDir,
+  parseInstallSource,
   parseSkillContract,
   resolveRegistryIndex,
   resolveRegistryRoot,
+  writeFetchedSkill,
+  type FetchedSkill,
   type RegistryIndex,
   type RegistrySkill,
 } from "@khalidsaidi/skillrunner-engine";
@@ -188,15 +199,194 @@ async function installSkillFromRemote(
   }
 }
 
+function sanitizeInstallDirName(name: string): string {
+  return (
+    name
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9._-]+/g, "-")
+      .replace(/^[-.]+|[-.]+$/g, "") || "skill"
+  );
+}
+
+/**
+ * Install a skill fetched from outside the registry (GitHub repo path or
+ * plain URL), running the same trust pipeline the registry skills get:
+ * parse the contract, build the plan, and static-audit every script
+ * before anything lands in the skills directory.
+ */
+async function installFromFetched(
+  fetchedPromise: Promise<FetchedSkill>,
+  opts: { json?: boolean; yes?: boolean },
+  json: boolean,
+): Promise<void> {
+  let fetched: FetchedSkill;
+  try {
+    fetched = await fetchedPromise;
+  } catch (e) {
+    const message = `Fetch failed: ${(e as Error).message}`;
+    if (json) {
+      console.log(JSON.stringify({ success: false, error: message }, null, 2));
+    } else {
+      console.error(chalk.red(message));
+    }
+    process.exit(1);
+    return;
+  }
+
+  const stagingDir = mkdtempSync(join(tmpdir(), "skillrunner-install-"));
+  try {
+    writeFetchedSkill(stagingDir, fetched);
+
+    let loaded;
+    try {
+      loaded = loadSkillMetaFromDir(stagingDir);
+    } catch (e) {
+      throw new Error(`Invalid skill contract: ${(e as Error).message}`);
+    }
+    const meta = loaded.meta;
+    const plan = buildPlan(stagingDir, meta);
+    const audit = auditSkillDir(stagingDir);
+    const blocks = audit.findings.filter((f) => f.severity === "block");
+    const warns = audit.findings.filter((f) => f.severity !== "block");
+
+    if (blocks.length > 0) {
+      const detail = blocks
+        .map((f) => `${f.file}:${f.line} [${f.ruleId}] ${f.message}`)
+        .join("; ");
+      if (json) {
+        console.log(
+          JSON.stringify(
+            {
+              success: false,
+              error: "Blocked by audit",
+              source: fetched.sourceUrl,
+              findings: audit.findings,
+            },
+            null,
+            2,
+          ),
+        );
+      } else {
+        console.error(
+          chalk.red("Install blocked by audit:"),
+          fetched.sourceUrl,
+        );
+        for (const f of blocks) {
+          console.error(
+            `  ${chalk.red("BLOCK")} ${f.file}:${f.line} [${f.ruleId}] ${f.message}`,
+          );
+          if (f.excerpt) console.error(chalk.dim(`        ${f.excerpt}`));
+        }
+      }
+      process.exitCode = 2;
+      throw new Error(`Blocked by audit: ${detail}`);
+    }
+
+    if (!json && !opts.yes) {
+      console.log(chalk.bold(`Install ${meta.name}`));
+      console.log(chalk.dim(`  Source: ${fetched.sourceUrl}`));
+      console.log(chalk.dim(`  Files: ${fetched.files.length}`));
+      console.log(
+        chalk.dim(
+          `  Plan: ${plan.steps.length} executable step(s), risk: ${plan.risk}${
+            meta.kind ? `, kind: ${meta.kind}` : ""
+          }`,
+        ),
+      );
+      if (warns.length > 0) {
+        console.log(chalk.yellow(`  Audit warnings (${warns.length}):`));
+        for (const f of warns) {
+          console.log(
+            chalk.yellow(`    ${f.file}:${f.line} [${f.ruleId}] ${f.message}`),
+          );
+        }
+      } else {
+        console.log(chalk.green("  Audit: clean"));
+      }
+      const { confirm } = await prompts({
+        type: "confirm",
+        name: "confirm",
+        message: `Install ${meta.name}?`,
+        initial: warns.length === 0,
+      });
+      if (!confirm) {
+        console.log(chalk.dim("Cancelled."));
+        return;
+      }
+    }
+
+    const skillsDir = getSkillsDir();
+    mkdirSync(skillsDir, { recursive: true });
+    const slug = sanitizeInstallDirName(meta.name);
+    const destDir = join(skillsDir, `${slug}@${meta.version || "latest"}`);
+    rmSync(destDir, { recursive: true, force: true });
+    cpSync(stagingDir, destDir, { recursive: true });
+
+    if (json) {
+      console.log(
+        JSON.stringify(
+          {
+            success: true,
+            name: meta.name,
+            slug,
+            path: destDir,
+            source: fetched.sourceUrl,
+            plan,
+            audit: {
+              findings: audit.findings,
+              scannedFiles: audit.scannedFiles.length,
+            },
+          },
+          null,
+          2,
+        ),
+      );
+    } else {
+      console.log(
+        chalk.green("Installed:"),
+        meta.name,
+        chalk.dim(`→ ${destDir}`),
+      );
+      console.log(chalk.dim(`  From: ${fetched.sourceUrl}`));
+    }
+  } catch (e) {
+    if (!json && process.exitCode !== 2) {
+      console.error(chalk.red("Install failed:"), (e as Error).message);
+    } else if (json && process.exitCode !== 2) {
+      console.log(
+        JSON.stringify(
+          { success: false, error: (e as Error).message },
+          null,
+          2,
+        ),
+      );
+    }
+    process.exit(process.exitCode || 1);
+  } finally {
+    rmSync(stagingDir, { recursive: true, force: true });
+  }
+}
+
 export async function installCmd(
   name: string,
-  opts: { json?: boolean },
+  opts: { json?: boolean; yes?: boolean },
   cmd: {
     opts?: () => { json?: boolean };
     parent?: { opts?: () => { json?: boolean } };
   },
 ): Promise<void> {
   const json = shouldUseJson(opts, cmd);
+
+  const source = parseInstallSource(name);
+  if (source.type === "github") {
+    await installFromFetched(fetchSkillFromGitHub(source), opts, json);
+    return;
+  }
+  if (source.type === "url") {
+    await installFromFetched(fetchSkillFromUrl(source.url), opts, json);
+    return;
+  }
 
   let index;
   try {

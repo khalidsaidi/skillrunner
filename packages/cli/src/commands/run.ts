@@ -26,13 +26,22 @@ function findSkillDir(name: string): string | null {
   return match ? join(skillsDir, match.name) : null;
 }
 
+function parseInputPairs(pairs: string[] | undefined): Record<string, string> {
+  const inputs: Record<string, string> = {};
+  for (const pair of pairs || []) {
+    const eq = pair.indexOf("=");
+    if (eq <= 0) continue;
+    inputs[pair.slice(0, eq).trim()] = pair.slice(eq + 1);
+  }
+  return inputs;
+}
+
 export async function runCmd(
   name: string,
   opts: {
     yes?: boolean;
     cwd?: string;
-    allowDirty?: boolean;
-    noBranch?: boolean;
+    inputs?: string[];
     json?: boolean;
   },
   cmd: {
@@ -79,6 +88,39 @@ export async function runCmd(
   if (!metaResult) process.exit(1);
   const meta = metaResult.meta;
   const plan = buildPlan(skillDir, meta);
+
+  if (plan.steps.length === 0) {
+    // Nothing executable: knowledge skills are instructions for an agent,
+    // not scripts for this runner. Say so instead of pretending we ran.
+    const isKnowledge = meta.kind === "knowledge" || !meta.scripts;
+    const message = isKnowledge
+      ? `${meta.name} is a knowledge skill — instructions for an agent, nothing for skillrunner to execute.`
+      : `${meta.name} declares no runnable scripts (scripts/check.sh or scripts/run.sh), so there is nothing to execute.`;
+    if (json) {
+      console.log(
+        JSON.stringify(
+          {
+            success: true,
+            executed: false,
+            kind: meta.kind,
+            message,
+            hint: `skill export claude ${name}`,
+          },
+          null,
+          2,
+        ),
+      );
+    } else {
+      console.log(chalk.yellow("Nothing to execute."), message);
+      console.log(
+        chalk.dim(
+          `Put it where your agent can use it instead: skill export claude ${name} (targets: claude, codex, cursor, opencode)`,
+        ),
+      );
+    }
+    return;
+  }
+
   const preflight = checkSkillPrerequisites(meta, cwd);
 
   if (!preflight.passed) {
@@ -172,10 +214,18 @@ export async function runCmd(
     }
   }
 
+  const inputs: Record<string, string> = {};
+  for (const [key, def] of Object.entries(meta.inputs || {})) {
+    if (def && typeof def === "object" && def.default !== undefined) {
+      inputs[key] = String(def.default);
+    }
+  }
+  Object.assign(inputs, parseInputPairs(opts.inputs));
+
   const runId = randomUUID();
   writeRunArtifacts(runId, meta.name, cwd, plan, guardResult);
 
-  const results = await executePlan(cwd, skillDir, plan);
+  const results = await executePlan(cwd, skillDir, plan, { inputs });
   const last = results[results.length - 1];
   const success = last ? last.success : true;
   const exitCode = last ? last.exitCode : 0;
