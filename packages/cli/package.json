@@ -1,7 +1,7 @@
 {
   "name": "@khalidsaidi/skillrunner",
-  "version": "0.1.3",
-  "description": "Local-first CLI to discover, install, plan, and safely run reusable engineering skills.",
+  "version": "0.2.0",
+  "description": "Audit, safely run, and export SKILL.md agent skills across Claude Code, Codex, Cursor, and opencode.",
   "type": "module",
   "license": "MIT",
   "homepage": "https://github.com/khalidsaidi/skillrunner#readme",
@@ -14,18 +14,19 @@
   },
   "keywords": [
     "cli",
-    "skills-cli",
-    "automation",
+    "skills",
+    "skill-md",
+    "agent-skills",
+    "claude-code",
+    "codex",
+    "cursor",
+    "opencode",
+    "audit",
+    "supply-chain-security",
     "developer-tools",
-    "engineering-workflows",
-    "devops-automation",
     "local-first",
     "agent-workflows",
-    "skill-registry",
-    "code-review",
-    "testing",
-    "terraform",
-    "react"
+    "skill-registry"
   ],
   "bin": {
     "skill": "dist/cli.js"

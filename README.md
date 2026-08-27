@@ -1,233 +1,100 @@
 # SkillRunner
 
-State-of-the-art npm CLI for discoverable, safe, reusable engineering skills.
+**Audit, safely run, and export [SKILL.md](https://agentskills.io) skills across Claude Code, Codex, Cursor, and opencode.**
+
+The SKILL.md open standard made agent skills portable — and turned every skills folder into a supply chain. Skills are markdown plus scripts that your agent executes with your permissions: a malicious `scripts/run.sh` that pipes a download into `bash` or posts `$GITHUB_TOKEN` somewhere looks exactly like a helpful one until you read it. Public skill hubs have already had to pull skills for exactly this. SkillRunner is the trust layer in front of that: a static audit before anything lands, guarded execution with an artifact trail, and spec-pure export into whichever agent you actually use.
 
 ```bash
 npm i -g @khalidsaidi/skillrunner
 ```
 
-- Build with a curated catalog: **73 skills** (**14 automation**, **59 knowledge**)
-- Run with guardrails: **plan preview**, **preflight checks**, and **script safety blocks**
-- Ship with confidence: CI on every push/PR, registry publish on `main` catalog changes, and nightly matrix validation at **06:00 UTC**
+## The three things it does
 
-## What ships
+### 1. Audit — before you trust a skill
 
-1. `@khalidsaidi/skillrunner` npm package (the `skill` CLI)
-2. Curated registry index (`registry/dist/index.json`)
-3. Versioned skill catalog (`registry/skills/*`) and packs (`registry/packs/*`)
-
-The dashboard and registry admin server are internal/optional tooling for maintainers, not the primary product surface.
-
-## Why SkillRunner
-
-- **CLI-first UX**: fast, scriptable, and friendly for terminal-native teams
-- **Safety by design**: plan preview, preflight checks, and script guardrails
-- **Curated catalog**: default-enabled skills plus advanced/conditional skills
-- **Local-first execution**: skills run in your repo with clear artifacts/logs
-- **Operational confidence**: nightly matrix testing across multiple templates
-
-## Quickstart
+Point it at any skills directory — including the ones your agents already load:
 
 ```bash
-skill doctor
-skill search lint
-skill install run-lint
-skill plan run-lint
-skill run run-lint
-skill logs --last
+skill audit ~/.claude/skills          # everything Claude Code loads
+skill audit ./candidate-skill         # one directory you're reviewing
+skill audit --json                    # machine-readable, CI-friendly
 ```
 
-## Catalog snapshot
+Flags the patterns that show up in real supply-chain incidents: pipe-to-shell (`curl ... | sh`), base64/eval obfuscation, `/dev/tcp` and netcat exfiltration, credential files or env vars in network commands, plus mismatches between what a skill *declares* (`capabilities`) and what its scripts *do*. Exit code 2 when anything is hard-blocked.
 
-Current curated snapshot:
+Honest positioning: this is a **seatbelt and an audit trail, not a sandbox**. Static analysis can be evaded by a determined attacker — it catches the careless and the common, and gives you a reviewable record. Run untrusted skills in isolated environments.
 
-- **73 total skills**
-- **14 automation skills**
-- **59 knowledge skills**
-- **25 default-enabled skills**
-- **48 advanced skills**
-- **3 packs**
-- **Source mix:** 25 native SkillRunner + 32 OpenAI upstream + 16 Anthropic upstream
-- **Freshness marker:** `registry/dist/index.json` includes `generated_at`
+### 2. Install — from the whole ecosystem, through the trust pipeline
 
-## Supported skills
-
-Native SkillRunner automation skills (14):
-
-- `node-doctor`
-- `repo-bootstrap`
-- `run-lint`
-- `run-format`
-- `run-tests`
-- `run-build`
-- `run-typecheck`
-- `dependency-audit-report`
-- `dependency-security-fix`
-- `react-maintenance-upgrade`
-- `terraform-fmt-validate`
-- `terraform-drift-audit`
-- `git-status-report`
-- `changelog-from-commits`
-
-Native SkillRunner knowledge skills (11):
-
-- `code-review-checklist`
-- `debugging-playbook`
-- `deployment-checklist`
-- `docs-styleguide`
-- `git-commit-style`
-- `pr-description-style`
-- `react-patterns`
-- `release-notes-style`
-- `security-hygiene`
-- `terraform-structure`
-- `testing-playbook`
-
-Imported OpenAI skills (32):
-
-- `openai-cloudflare-deploy`
-- `openai-develop-web-game`
-- `openai-doc`
-- `openai-figma`
-- `openai-figma-implement-design`
-- `openai-gh-address-comments`
-- `openai-gh-fix-ci`
-- `openai-imagegen`
-- `openai-jupyter-notebook`
-- `openai-linear`
-- `openai-netlify-deploy`
-- `openai-notion-knowledge-capture`
-- `openai-notion-meeting-intelligence`
-- `openai-notion-research-documentation`
-- `openai-notion-spec-to-implementation`
-- `openai-openai-docs`
-- `openai-pdf`
-- `openai-playwright`
-- `openai-render-deploy`
-- `openai-screenshot`
-- `openai-security-best-practices`
-- `openai-security-ownership-map`
-- `openai-security-threat-model`
-- `openai-sentry`
-- `openai-skill-creator`
-- `openai-skill-installer`
-- `openai-sora`
-- `openai-speech`
-- `openai-spreadsheet`
-- `openai-transcribe`
-- `openai-vercel-deploy`
-- `openai-yeet`
-
-Imported Anthropic skills (16):
-
-- `anthropic-algorithmic-art`
-- `anthropic-brand-guidelines`
-- `anthropic-canvas-design`
-- `anthropic-doc-coauthoring`
-- `anthropic-docx`
-- `anthropic-frontend-design`
-- `anthropic-internal-comms`
-- `anthropic-mcp-builder`
-- `anthropic-pdf`
-- `anthropic-pptx`
-- `anthropic-skill-creator`
-- `anthropic-slack-gif-creator`
-- `anthropic-theme-factory`
-- `anthropic-web-artifacts-builder`
-- `anthropic-webapp-testing`
-- `anthropic-xlsx`
-
-## Core commands
-
-- `skill doctor` — validate local environment and registry
-- `skill search <query>` — search catalog
-- `skill info <name>` — inspect one skill
-- `skill install <name>` / `skill uninstall <name>`
-- `skill plan <name>` — preview steps and risk
-- `skill run <name>` — execute with safety checks
-- `skill logs --last` / `skill logs --id <runId>`
-- `skill list` — show installed skills
-
-## Safety model
-
-Every run is protected by layered checks:
-
-1. **Plan before run**: explicit step/risk view via `skill plan`
-2. **Preflight enforcement**: missing prerequisites block execution early
-3. **Guardrails**: banned script patterns are blocked
-4. **No auto-push**: skills do not push to remotes
-5. **Artifacts**: run metadata and output are persisted for auditability
-
-Run artifacts are stored in:
-
-- `~/.skillrunner/skills`
-- `~/.skillrunner/runs/<runId>`
-
-## Skill metadata
-
-Skills are directories with a supported contract file plus optional scripts.
-
-Supported contract files:
-
-- `SKILL.md` / `skill.md`
-- `skill.yaml` / `skill.yml`
-- `skill.json`
-- `AGENT.md` / `AGENTS.md` / `CLAUDE.md`
-- `README.md` (fallback)
-
-Important metadata fields:
-
-- `availability`: `default` | `advanced` | `conditional`
-- `prerequisites.tools[]`
-- `prerequisites.files[]`
-- `prerequisites.env[]`
-- `prerequisites.packageJsonDeps[]`
-
-## Registry and updates
-
-- Registry source of truth is versioned in this repository
-- Registry index is generated from skill metadata
-- Discovery/curation can sync in external skills before publish
-- Default-enabled pack is maintained explicitly for high-signal onboarding
-
-## Update cadence
-
-- CI quality gates run on every push and pull request
-- Registry index is rebuilt/published on every `main` push that changes `registry/**`
-- Nightly matrix runs every day at `06:00 UTC` across Node/React/Python/empty templates
-- npm releases are cut on version tags (`v*`) or manual release dispatch
-
-## Quality and release confidence
-
-SkillRunner uses automated quality gates:
-
-- formatting and type-safe builds
-- registry validation/build checks
-- nightly matrix runs across:
-  - Node template
-  - React template
-  - Python template
-  - Empty repo template
-
-## Cursor integration
+Install any SKILL.md skill straight from GitHub or a URL — not just this repo's registry:
 
 ```bash
-skill cursor install code-review-checklist --scope project
-skill cursor install code-review-checklist --scope global
-skill cursor list --scope both
+skill install anthropics/skills/skills/pdf        # owner/repo/path
+skill install https://github.com/anthropics/skills/tree/main/skills/internal-comms
+skill install https://example.com/my-skill/SKILL.md
+skill install run-lint                            # curated registry, same pipeline
 ```
+
+Every remote skill is staged, its contract parsed, its plan computed, and **every script statically audited before it lands**. Blocked skills never reach your skills directory; warnings are shown before you confirm.
+
+### 3. Export — spec-pure skills into any agent
+
+```bash
+skill export claude anthropic-pdf         # → ~/.claude/skills
+skill export codex changelog-from-commits # → ~/.agents/skills
+skill export cursor code-review-checklist # → ~/.cursor/skills
+skill export opencode debugging-playbook  # → ~/.config/opencode/skills
+skill export claude my-skill --scope project   # → ./.claude/skills
+```
+
+Exports are pure [agentskills.io](https://agentskills.io/specification) SKILL.md directories: imported skills ship their pristine upstream copy verbatim; SkillRunner-native skills get spec-normalized frontmatter (name charset enforced, import-rename suffixes stripped, custom fields like `kind`/`risk`/`capabilities`/`scripts` moved under `metadata`). What lands in your agent's folder is exactly what the spec says a skill is.
+
+## Running skills
+
+Automation skills (the ones with scripts) run locally with layered checks:
+
+```bash
+skill plan run-lint                # step + risk preview, no execution
+skill run run-lint                 # preflight → guard → confirm → execute
+skill run my-skill --inputs env=staging   # exposed to scripts as $INPUT_ENV
+skill logs --last                  # persisted run artifacts
+```
+
+1. **Plan before run** — explicit step/risk view
+2. **Preflight** — missing tools/files/env/deps block execution early
+3. **Guard** — banned script patterns (sudo, `rm -rf`, pipe-to-shell, ~/.ssh, ...) hard-block the run
+4. **Artifacts** — plan, guard verdict, stdout/stderr persisted under `~/.skillrunner/runs/<runId>`
+
+Knowledge skills (instructions, no scripts) have nothing to execute — `skill run` says so and points you at `skill export` instead of pretending.
+
+## Command reference
+
+- `skill audit [dir|name]` — static audit; `--json` for CI
+- `skill install <name | owner/repo[/path] | url>` — registry or ecosystem install, audited
+- `skill export <target> <names...>` — targets: `claude`, `codex` (alias `agents`), `cursor`, `opencode`; `--scope project`, `--out <dir>`, `--force`
+- `skill search <query>` / `skill info <name>` / `skill list` / `skill uninstall <name>`
+- `skill plan <name>` / `skill run <name> [--inputs k=v ...]` / `skill logs --last`
+- `skill doctor` — environment + registry health
+- `skill open` — local dashboard (repo checkout; not bundled in the npm package)
+
+## Curated registry
+
+A starter catalog of **73 skills** (14 automation + 59 knowledge; 25 native, 48 imported from the OpenAI and Anthropic skill repos with pristine `upstream/` copies) is versioned in `registry/` and served from GitHub Pages (`https://khalidsaidi.github.io/skillrunner/index.json`). The registry is a convenience, not the point — `skill install` and `skill audit` work against the whole SKILL.md ecosystem.
+
+## Skill contracts
+
+Skills are directories with a supported contract file plus optional scripts:
+
+- `SKILL.md` (the open standard) — also `skill.yaml`/`skill.json`, `AGENT.md`/`AGENTS.md`/`CLAUDE.md`, `README.md` fallback
+- SkillRunner extensions read from frontmatter (and written back under `metadata` on export): `kind` (`automation`/`knowledge`), `risk`, `availability`, `capabilities` (`shell`/`network`/`fs_read`/`fs_write`), `scripts.check`/`scripts.run`, `prerequisites` (tools/files/env/packageJsonDeps), `inputs`
 
 ## Development (maintainers)
 
 ```bash
-pnpm install
+CI=true pnpm install
 pnpm build
 pnpm test
-pnpm registry:sync-upstream
-pnpm registry:validate
-pnpm registry:build
+pnpm registry:validate && pnpm registry:build
 ```
 
-## Maintainer marketing pack
-
-For npm listing A/B copy (short/long description + keywords), see `docs/marketing/npm-listing.md`.
+Monorepo: `packages/cli` (the `skill` CLI), `packages/engine` (parser/guard/audit/export/runner), `packages/adapters`, `packages/dashboard` (local run/skill viewer), `packages/registry-tools`, `registry/` (catalog source of truth).
