@@ -11,7 +11,7 @@ import {
   writeFileSync,
 } from "fs";
 import { tmpdir } from "os";
-import { basename, dirname, join } from "path";
+import { dirname, join } from "path";
 import { execFileSync } from "child_process";
 import { fileURLToPath } from "url";
 import { parseSkillContract } from "@khalidsaidi/skillrunner-engine";

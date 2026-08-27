@@ -19,7 +19,8 @@ function findInstalledSkillDir(name: string): string | null {
   if (!existsSync(skillsDir)) return null;
   const entries = readdirSync(skillsDir, { withFileTypes: true });
   const match = entries.find(
-    (e) => e.isDirectory() && (e.name === name || e.name.startsWith(name + "@")),
+    (e) =>
+      e.isDirectory() && (e.name === name || e.name.startsWith(name + "@")),
   );
   return match ? join(skillsDir, match.name) : null;
 }
@@ -70,7 +71,10 @@ export async function exportCmd(
     if (json) {
       console.log(
         JSON.stringify(
-          { success: false, error: `Unknown target: ${target}. Known targets: ${known}` },
+          {
+            success: false,
+            error: `Unknown target: ${target}. Known targets: ${known}`,
+          },
           null,
           2,
         ),

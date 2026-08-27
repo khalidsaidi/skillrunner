@@ -19,7 +19,9 @@ if (!existsSync(sourcePath)) {
 }
 
 if (!existsSync(sourceSkillsDir)) {
-  console.error(`[skillrunner] Missing skills directory at ${sourceSkillsDir}.`);
+  console.error(
+    `[skillrunner] Missing skills directory at ${sourceSkillsDir}.`,
+  );
   process.exit(1);
 }
 

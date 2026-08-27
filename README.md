@@ -20,7 +20,7 @@ skill audit ./candidate-skill         # one directory you're reviewing
 skill audit --json                    # machine-readable, CI-friendly
 ```
 
-Flags the patterns that show up in real supply-chain incidents: pipe-to-shell (`curl ... | sh`), base64/eval obfuscation, `/dev/tcp` and netcat exfiltration, credential files or env vars in network commands, plus mismatches between what a skill *declares* (`capabilities`) and what its scripts *do*. Exit code 2 when anything is hard-blocked.
+Flags the patterns that show up in real supply-chain incidents: pipe-to-shell (`curl ... | sh`), base64/eval obfuscation, `/dev/tcp` and netcat exfiltration, credential files or env vars in network commands, plus mismatches between what a skill _declares_ (`capabilities`) and what its scripts _do_. Exit code 2 when anything is hard-blocked.
 
 Honest positioning: this is a **seatbelt and an audit trail, not a sandbox**. Static analysis can be evaded by a determined attacker — it catches the careless and the common, and gives you a reviewable record. Run untrusted skills in isolated environments.
 

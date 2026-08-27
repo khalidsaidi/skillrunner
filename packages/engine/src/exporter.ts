@@ -61,9 +61,8 @@ export const EXPORT_TARGETS: ExportTargetDef[] = [
 export function resolveExportTarget(id: string): ExportTargetDef | null {
   const lookup = id.trim().toLowerCase();
   return (
-    EXPORT_TARGETS.find(
-      (t) => t.id === lookup || t.aliases.includes(lookup),
-    ) || null
+    EXPORT_TARGETS.find((t) => t.id === lookup || t.aliases.includes(lookup)) ||
+    null
   );
 }
 
@@ -98,9 +97,7 @@ export function sanitizeSkillName(name: string): string {
 
 /** Strip SkillRunner import-rename suffixes like "(Imported from anthropic upstream skills)". */
 export function stripImportSuffix(description: string): string {
-  return description
-    .replace(/\s*\(Imported from[^)]*\)\s*$/i, "")
-    .trim();
+  return description.replace(/\s*\(Imported from[^)]*\)\s*$/i, "").trim();
 }
 
 const SPEC_FIELDS = new Set([
@@ -234,9 +231,7 @@ export function exportSkill(
   }
 
   const raw = readFileSync(skillMdPath, "utf-8");
-  const spec = usedUpstream
-    ? specNameOnly(raw)
-    : buildSpecSkillMd(raw);
+  const spec = usedUpstream ? specNameOnly(raw) : buildSpecSkillMd(raw);
 
   const destDir = join(destRoot, spec.name);
   if (existsSync(destDir)) {

@@ -1,4 +1,10 @@
-import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, existsSync } from "fs";
+import {
+  mkdtempSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+  existsSync,
+} from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
 import { describe, it, expect } from "vitest";
@@ -46,7 +52,9 @@ describe("sanitizeSkillName", () => {
 describe("stripImportSuffix", () => {
   it("removes the import-rename suffix", () => {
     expect(
-      stripImportSuffix("Does things. (Imported from anthropic upstream skills)"),
+      stripImportSuffix(
+        "Does things. (Imported from anthropic upstream skills)",
+      ),
     ).toBe("Does things.");
     expect(stripImportSuffix("No suffix here")).toBe("No suffix here");
   });
@@ -86,7 +94,9 @@ Hello.
     expect(content).toMatch(/\n\s+kind: automation\n/);
     expect(content).toMatch(/\n\s+risk: low\n/);
     expect(content).toMatch(/\n\s+capabilities: shell\n/);
-    expect(content).toMatch(/\n\s+scripts: check=scripts\/check\.sh, run=scripts\/run\.sh\n/);
+    expect(content).toMatch(
+      /\n\s+scripts: check=scripts\/check\.sh, run=scripts\/run\.sh\n/,
+    );
     // no top-level custom keys
     expect(content).not.toMatch(/^kind:/m);
     expect(content).not.toMatch(/^risk:/m);
@@ -130,10 +140,15 @@ describe("exportSkill", () => {
 
     const result = exportSkill(src, dest);
     expect(result.usedUpstream).toBe(false);
-    const exported = readFileSync(join(dest, "native-one", "SKILL.md"), "utf-8");
+    const exported = readFileSync(
+      join(dest, "native-one", "SKILL.md"),
+      "utf-8",
+    );
     expect(exported).toContain("kind: knowledge");
     expect(exported).toMatch(/metadata:/);
-    expect(existsSync(join(dest, "native-one", "scripts", "run.sh"))).toBe(true);
+    expect(existsSync(join(dest, "native-one", "scripts", "run.sh"))).toBe(
+      true,
+    );
   });
 
   it("refuses to overwrite without force", () => {

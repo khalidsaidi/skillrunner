@@ -19,9 +19,21 @@ interface TargetDirs {
 }
 
 const TARGETS: TargetDirs[] = [
-  { providerId: "claude", globalDir: [".claude", "skills"], projectDir: [".claude", "skills"] },
-  { providerId: "codex", globalDir: [".agents", "skills"], projectDir: [".agents", "skills"] },
-  { providerId: "cursor", globalDir: [".cursor", "skills"], projectDir: [".cursor", "skills"] },
+  {
+    providerId: "claude",
+    globalDir: [".claude", "skills"],
+    projectDir: [".claude", "skills"],
+  },
+  {
+    providerId: "codex",
+    globalDir: [".agents", "skills"],
+    projectDir: [".agents", "skills"],
+  },
+  {
+    providerId: "cursor",
+    globalDir: [".cursor", "skills"],
+    projectDir: [".cursor", "skills"],
+  },
   {
     providerId: "opencode",
     globalDir: [".config", "opencode", "skills"],

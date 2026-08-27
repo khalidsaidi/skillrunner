@@ -18,7 +18,7 @@ SkillRunner is a skills ecosystem: CLI (`skill`) + local dashboard + skill regis
 | **registry/skills/**         | 25 skills                                                                                |
 | **registry/packs/**          | starter.json, react.json, terraform.json                                                 |
 | **registry/dist/index.json** | Generated index, published via GitHub Pages                                              |
-| **.ai/**                     | Entire directory gitignored — NEVER read, edit, or reference .ai/* (contains secrets)   |
+| **.ai/**                     | Entire directory gitignored — NEVER read, edit, or reference .ai/\* (contains secrets)   |
 
 ## Paths
 

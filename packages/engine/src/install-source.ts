@@ -144,7 +144,9 @@ async function listGitHubDir(
   const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encoded}?ref=${encodeURIComponent(ref)}`;
   const data = await fetchJson(url);
   if (!Array.isArray(data)) {
-    throw new Error(`Expected a directory at ${path || "/"} in ${owner}/${repo}`);
+    throw new Error(
+      `Expected a directory at ${path || "/"} in ${owner}/${repo}`,
+    );
   }
   return data as GitHubContentEntry[];
 }
@@ -179,7 +181,12 @@ export async function fetchSkillFromGitHub(source: {
   }`;
 
   try {
-    const topEntries = await listGitHubDir(source.owner, source.repo, base, ref);
+    const topEntries = await listGitHubDir(
+      source.owner,
+      source.repo,
+      base,
+      ref,
+    );
     const hasSkillMd = topEntries.some(
       (e) => e.type === "file" && e.name.toLowerCase() === "skill.md",
     );
@@ -212,9 +219,7 @@ export async function fetchSkillFromGitHub(source: {
     try {
       skillMd = await fetchBinary(`${rawBase}/SKILL.md`);
     } catch {
-      throw apiError instanceof Error
-        ? apiError
-        : new Error(String(apiError));
+      throw apiError instanceof Error ? apiError : new Error(String(apiError));
     }
     const files: FetchedSkillFile[] = [{ path: "SKILL.md", content: skillMd }];
     for (const candidate of ["scripts/check.sh", "scripts/run.sh"]) {
@@ -302,9 +307,7 @@ export async function fetchSkillFromUrl(url: string): Promise<FetchedSkill> {
   const normalized = url.replace(/\/+$/, "");
   const isSkillMd = /skill\.md$/i.test(normalized);
   const skillMdUrl = isSkillMd ? normalized : `${normalized}/SKILL.md`;
-  const baseUrl = isSkillMd
-    ? normalized.replace(/\/[^/]+$/, "")
-    : normalized;
+  const baseUrl = isSkillMd ? normalized.replace(/\/[^/]+$/, "") : normalized;
 
   const skillMd = await fetchBinary(skillMdUrl);
   const files: FetchedSkillFile[] = [{ path: "SKILL.md", content: skillMd }];

@@ -230,7 +230,7 @@ export async function runCmd(
   const success = last ? last.success : true;
   const exitCode = last ? last.exitCode : 0;
   const failureMessage = !success
-    ? (last?.stderr?.trim() || last?.stdout?.trim() || "Skill script failed")
+    ? last?.stderr?.trim() || last?.stdout?.trim() || "Skill script failed"
     : undefined;
 
   writeRunArtifacts(

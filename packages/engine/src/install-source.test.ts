@@ -85,11 +85,11 @@ describe("parseInstallSource", () => {
   });
 
   it("keeps non-GitHub URLs as plain URLs", () => {
-    expect(
-      parseInstallSource("https://example.com/my-skill/SKILL.md"),
-    ).toEqual({
-      type: "url",
-      url: "https://example.com/my-skill/SKILL.md",
-    });
+    expect(parseInstallSource("https://example.com/my-skill/SKILL.md")).toEqual(
+      {
+        type: "url",
+        url: "https://example.com/my-skill/SKILL.md",
+      },
+    );
   });
 });

@@ -14,7 +14,8 @@ function findInstalledSkillDir(name: string): string | null {
   if (!existsSync(skillsDir)) return null;
   const entries = readdirSync(skillsDir, { withFileTypes: true });
   const match = entries.find(
-    (e) => e.isDirectory() && (e.name === name || e.name.startsWith(name + "@")),
+    (e) =>
+      e.isDirectory() && (e.name === name || e.name.startsWith(name + "@")),
   );
   return match ? join(skillsDir, match.name) : null;
 }
