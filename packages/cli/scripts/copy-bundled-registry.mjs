@@ -1,31 +1,29 @@
-// NOTE: Reconstructed during the 0.1.3 source recovery. The published
-// package bundles the registry snapshot at dist/registry/{dist,skills}, which
-// is what loadBundledRegistry() in the engine resolves at runtime.
-import { cpSync, existsSync, mkdirSync } from "fs";
-import { dirname, join, resolve } from "path";
+import { copyFileSync, cpSync, existsSync, mkdirSync, rmSync } from "fs";
+import { dirname, resolve } from "path";
 import { fileURLToPath } from "url";
 
-const here = dirname(fileURLToPath(import.meta.url));
-const cliRoot = resolve(here, "..");
+const scriptDir = dirname(fileURLToPath(import.meta.url));
+const cliRoot = resolve(scriptDir, "..");
 const repoRoot = resolve(cliRoot, "..", "..");
+const sourcePath = resolve(repoRoot, "registry", "dist", "index.json");
+const sourceSkillsDir = resolve(repoRoot, "registry", "skills");
+const destRegistryRoot = resolve(cliRoot, "dist", "registry");
+const destPath = resolve(destRegistryRoot, "dist", "index.json");
+const destSkillsDir = resolve(destRegistryRoot, "skills");
 
-const registryRoot = join(repoRoot, "registry");
-const skillsDir = join(registryRoot, "skills");
-const indexFile = join(registryRoot, "dist", "index.json");
-const outDir = join(cliRoot, "dist", "registry");
-
-if (!existsSync(skillsDir)) {
-  console.error(`copy-bundled-registry: missing ${skillsDir}`);
-  process.exit(1);
-}
-if (!existsSync(indexFile)) {
+if (!existsSync(sourcePath)) {
   console.error(
-    `copy-bundled-registry: missing ${indexFile} — run "pnpm registry:build" first`,
+    `[skillrunner] Missing registry index at ${sourcePath}. Run pnpm registry:build before building the CLI.`,
   );
   process.exit(1);
 }
 
-mkdirSync(outDir, { recursive: true });
-cpSync(join(registryRoot, "dist"), join(outDir, "dist"), { recursive: true });
-cpSync(skillsDir, join(outDir, "skills"), { recursive: true });
-console.log(`copy-bundled-registry: copied registry snapshot to ${outDir}`);
+if (!existsSync(sourceSkillsDir)) {
+  console.error(`[skillrunner] Missing skills directory at ${sourceSkillsDir}.`);
+  process.exit(1);
+}
+
+rmSync(destRegistryRoot, { recursive: true, force: true });
+mkdirSync(dirname(destPath), { recursive: true });
+copyFileSync(sourcePath, destPath);
+cpSync(sourceSkillsDir, destSkillsDir, { recursive: true });

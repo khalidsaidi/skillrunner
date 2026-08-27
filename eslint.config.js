@@ -1,23 +1,28 @@
-// NOTE: Reconstructed during the 0.1.3 source recovery (the original lint
-// config was not recoverable from the published package).
+import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
+import globals from "globals";
 
-export default [
+export default tseslint.config(
+  eslint.configs.recommended,
+  ...tseslint.configs.recommended,
   {
-    ignores: [
-      "**/node_modules/**",
-      "**/dist/**",
-      "registry/**",
-      "**/*.mjs",
-      "eslint.config.js",
-    ],
+    ignores: ["**/dist/", "**/node_modules/", "registry/", ".cursor/", ".ai/"],
   },
-  ...tseslint.configs.recommended.map((config) => ({
-    ...config,
-    files: ["packages/**/*.ts"],
-  })),
   {
-    files: ["packages/**/*.ts"],
+    files: ["**/*.ts", "**/*.tsx"],
+    languageOptions: {
+      globals: {
+        console: "readonly",
+        process: "readonly",
+        setTimeout: "readonly",
+        Buffer: "readonly",
+        __dirname: "readonly",
+        __filename: "readonly",
+        module: "readonly",
+        require: "readonly",
+        exports: "writable",
+      },
+    },
     rules: {
       "@typescript-eslint/no-unused-vars": [
         "error",
@@ -25,4 +30,8 @@ export default [
       ],
     },
   },
-];
+  {
+    files: ["**/*.js", "**/*.mjs"],
+    languageOptions: { globals: globals.node },
+  },
+);

@@ -1,7 +1,0 @@
-name: terraform
-description: Terraform workflows
-skills:
-  - terraform-fmt-validate
-  - terraform-drift-audit
-  - terraform-structure
-  - security-hygiene

@@ -1,7 +1,4 @@
-// NOTE: This file was reconstructed during the 0.1.3 source recovery.
-// Type-only modules are erased at compile time, so types.ts never appeared in
-// the published sourcemap. The shapes below are derived from how every other
-// (verbatim-recovered) module uses them and from the published registry index.
+export type SkillAvailability = "default" | "advanced" | "conditional";
 
 export type SkillContractType =
   | "skill_md"
@@ -11,17 +8,8 @@ export type SkillContractType =
   | "readme_markdown";
 
 export interface SkillContractRef {
-  file: string;
   type: SkillContractType;
-}
-
-export type SkillAvailability = "default" | "advanced" | "conditional";
-
-export interface InputDef {
-  type?: string;
-  description?: string;
-  required?: boolean;
-  default?: unknown;
+  file: string;
 }
 
 export interface SkillPrerequisites {
@@ -29,23 +17,6 @@ export interface SkillPrerequisites {
   files?: string[];
   env?: string[];
   packageJsonDeps?: string[];
-}
-
-export interface SkillCapabilities {
-  shell?: boolean;
-  network?: boolean;
-  fs_read?: boolean;
-  fs_write?: boolean;
-}
-
-export interface SkillScripts {
-  check?: string;
-  run?: string;
-}
-
-export interface SkillDocs {
-  homepage?: string;
-  source?: string;
 }
 
 export interface SkillMeta {
@@ -57,15 +28,27 @@ export interface SkillMeta {
   risk?: "low" | "moderate" | "high";
   availability?: SkillAvailability;
   prerequisites?: SkillPrerequisites;
-  capabilities?: SkillCapabilities;
-  scripts?: SkillScripts;
+  capabilities?: {
+    shell?: boolean;
+    network?: boolean;
+    fs_read?: boolean;
+    fs_write?: boolean;
+  };
+  scripts?: {
+    check?: string;
+    run?: string;
+  };
   inputs?: Record<string, InputDef>;
-  docs?: SkillDocs;
+  docs?: {
+    homepage?: string;
+    source?: string;
+  };
 }
 
-export interface PlanStep {
-  type: "shell";
-  cmd: string;
+export interface InputDef {
+  type: "string" | "boolean" | "enum";
+  default?: string | boolean;
+  values?: string[];
 }
 
 export interface Plan {
@@ -79,35 +62,47 @@ export interface Plan {
   risk: "low" | "moderate" | "high";
 }
 
-export interface RegistrySkillPaths {
-  dir?: string;
-  skill_md?: string;
-  raw_skill_md?: string;
-  contract?: string;
-  raw_contract?: string;
+export interface PlanStep {
+  type: "shell";
+  cmd: string;
 }
 
-export interface RegistrySkill extends SkillMeta {
+export interface RegistryIndex {
+  registry_version: number;
+  generated_at: string;
+  source: {
+    repo: string;
+    ref: string;
+    base_url: string;
+  };
+  skills: RegistrySkill[];
+  packs: RegistryPack[];
+}
+
+export interface RegistrySkill {
+  name: string;
+  description: string;
+  version?: string;
+  tags?: string[];
+  kind?: "automation" | "knowledge";
+  risk?: "low" | "moderate" | "high";
+  availability?: SkillAvailability;
+  prerequisites?: SkillPrerequisites;
+  capabilities?: Record<string, boolean>;
+  scripts?: Record<string, string>;
+  inputs?: Record<string, unknown>;
   contract?: SkillContractRef;
-  paths?: RegistrySkillPaths;
+  paths: {
+    dir: string;
+    skill_md: string;
+    raw_skill_md: string;
+    contract?: string;
+    raw_contract?: string;
+  };
 }
 
 export interface RegistryPack {
   name: string;
-  description?: string;
+  description: string;
   skills: string[];
-}
-
-export interface RegistrySource {
-  repo?: string;
-  ref?: string;
-  base_url?: string;
-}
-
-export interface RegistryIndex {
-  registry_version?: number;
-  generated_at?: string;
-  source?: RegistrySource;
-  skills: RegistrySkill[];
-  packs?: RegistryPack[];
 }
