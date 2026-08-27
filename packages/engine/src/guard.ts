@@ -23,14 +23,17 @@ export interface GuardResult {
 }
 
 export function scanScriptForBannedPatterns(scriptPath: string): GuardResult {
-  const violations: string[] = [];
   let content: string;
   try {
     content = readFileSync(scriptPath, "utf-8");
   } catch {
     return { passed: true, violations: [] };
   }
+  return scanContentForBannedPatterns(content);
+}
 
+export function scanContentForBannedPatterns(content: string): GuardResult {
+  const violations: string[] = [];
   const lines = content.split("\n");
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];

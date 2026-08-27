@@ -7,3 +7,6 @@ export * from "./planner.js";
 export * from "./runner.js";
 export * from "./artifacts.js";
 export * from "./paths.js";
+export * from "./exporter.js";
+export * from "./audit.js";
+export * from "./install-source.js";
