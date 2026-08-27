@@ -8,6 +8,11 @@ import {
 import { existsSync, readdirSync } from "fs";
 import { join } from "path";
 import { shouldUseJson } from "../utils/json.js";
+import {
+  didYouMeanLine,
+  installedSkillNames,
+  suggestForName,
+} from "../utils/suggest.js";
 
 function findInstalledSkillDir(name: string): string | null {
   const skillsDir = getSkillsDir();
@@ -62,9 +67,10 @@ export async function infoCmd(
     }
   }
 
+  let idx;
   if (!skill) {
     try {
-      const idx = await resolveRegistryIndex();
+      idx = await resolveRegistryIndex();
       skill = getSkillFromIndex(idx, name);
     } catch (e) {
       if (json) {
@@ -77,9 +83,19 @@ export async function infoCmd(
   }
 
   if (!skill) {
-    if (json)
-      console.log(JSON.stringify({ error: "Skill not found" }, null, 2));
-    else console.error(chalk.red("Skill not found:"), name);
+    const suggestions = await suggestForName(name, {
+      index: idx,
+      extraCandidates: installedSkillNames(),
+    });
+    if (json) {
+      console.log(
+        JSON.stringify({ error: "Skill not found", suggestions }, null, 2),
+      );
+    } else {
+      console.error(chalk.red("Skill not found:"), name);
+      const hint = didYouMeanLine(suggestions);
+      if (hint) console.error(chalk.dim(hint));
+    }
     process.exit(1);
   }
 

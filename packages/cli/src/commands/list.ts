@@ -58,7 +58,7 @@ export async function listCmd(
   }
   for (const s of skills) {
     console.log(
-      `  ${chalk.cyan(s.name)}${s.version ? chalk.dim(`@${s.version}`) : ""}${chalk.dim(` [${s.availability || "default"}]`)}`,
+      `  ${chalk.cyan(s.name)}${s.version ? chalk.dim(`@${s.version}`) : ""}${chalk.dim(` — availability:${s.availability || "default"}`)}`,
     );
     if (s.description) console.log(`    ${chalk.dim(s.description)}`);
   }

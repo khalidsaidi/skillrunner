@@ -95,6 +95,77 @@ describe("auditSkillDir", () => {
     expect(result.blocked).toBe(false);
   });
 
+  it("reports a capability mismatch when network is declared false but used", () => {
+    const root = mkdtempSync(join(tmpdir(), "sr-audit-capmm-"));
+    const dir = makeSkill(
+      root,
+      "capmm",
+      `---\nname: capmm\ndescription: d\nkind: automation\ncapabilities:\n  network: false\nscripts:\n  run: scripts/run.sh\n---\nbody`,
+      { "run.sh": "curl https://api.example.com/data\n" },
+    );
+    const result = auditSkillDir(dir);
+    const finding = result.findings.find(
+      (f) => f.ruleId === "capability-mismatch",
+    );
+    expect(finding).toBeDefined();
+    expect(finding?.message).toContain(
+      "network declared false but scripts use the network",
+    );
+    expect(result.findings.some((f) => f.ruleId === "undeclared-network")).toBe(
+      false,
+    );
+  });
+
+  it("reads capabilities declared under metadata (as skill export writes them)", () => {
+    const root = mkdtempSync(join(tmpdir(), "sr-audit-capmeta-"));
+    const dir = makeSkill(
+      root,
+      "capmeta",
+      `---\nname: capmeta\ndescription: d\nmetadata:\n  capabilities:\n    network: false\n---\nbody`,
+      { "run.sh": "curl https://api.example.com/data\n" },
+    );
+    const result = auditSkillDir(dir);
+    expect(
+      result.findings.some((f) => f.ruleId === "capability-mismatch"),
+    ).toBe(true);
+  });
+
+  it("does not flag prose 'etc.' or embedded shebangs (skill-creator false positives)", () => {
+    const root = mkdtempSync(join(tmpdir(), "sr-audit-prose-"));
+    const dir = makeSkill(
+      root,
+      "prose",
+      `---\nname: prose\ndescription: d\n---\nbody`,
+      {
+        "init.py": [
+          'DESC = "Executable code (Python/Bash/etc.) that can be run directly."',
+          "EXAMPLE_SCRIPT = '''#!/usr/bin/env python3",
+          "print('hi')",
+          "'''",
+        ].join("\n"),
+      },
+    );
+    const result = auditSkillDir(dir);
+    expect(result.blocked).toBe(false);
+    expect(
+      result.findings.filter((f) => f.ruleId === "guard-banned-pattern"),
+    ).toEqual([]);
+  });
+
+  it("collapses duplicate findings for one offense", () => {
+    const root = mkdtempSync(join(tmpdir(), "sr-audit-dedupe-"));
+    const dir = makeSkill(
+      root,
+      "dupes",
+      `---\nname: dupes\ndescription: d\n---\nbody`,
+      // Matches two distinct base64-exec rules on the same line.
+      { "run.sh": 'eval "$(echo aGk= | base64 -d)"\n' },
+    );
+    const result = auditSkillDir(dir);
+    const base64 = result.findings.filter((f) => f.ruleId === "base64-exec");
+    expect(base64).toHaveLength(1);
+  });
+
   it("blocks on guard patterns and marks the skill blocked", () => {
     const root = mkdtempSync(join(tmpdir(), "sr-audit2-"));
     const dir = makeSkill(

@@ -37,11 +37,18 @@ export async function searchCmd(
   }
 
   console.log(chalk.bold(`Search: "${query || ""}"\n`));
+  if (hits.length === 0) {
+    console.log(`No skills match "${query || ""}".`);
+    console.log(
+      chalk.dim('Try a broader query, or "skill list" for installed skills.'),
+    );
+    return;
+  }
   for (const s of hits) {
     const risk = s.risk || "low";
     const availability = s.availability || "default";
     console.log(
-      `  ${chalk.cyan(s.name)}${chalk.dim(` [${risk}|${availability}]`)}`,
+      `  ${chalk.cyan(s.name)}${chalk.dim(` — risk:${risk} · availability:${availability}`)}`,
     );
     console.log(`    ${s.description}`);
   }

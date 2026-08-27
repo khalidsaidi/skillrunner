@@ -31,6 +31,21 @@ import {
   type RegistrySkill,
 } from "@khalidsaidi/skillrunner-engine";
 import { shouldUseJson } from "../utils/json.js";
+import { didYouMeanLine, suggestForName } from "../utils/suggest.js";
+
+function isNetworkError(e: Error): boolean {
+  const text = `${e.message} ${(e.cause as Error | undefined)?.message || ""}`;
+  return /fetch failed|ENOTFOUND|ECONNREFUSED|ECONNRESET|EAI_AGAIN|ETIMEDOUT|ERR_SOCKET|network|abort/i.test(
+    text,
+  );
+}
+
+function describeFetchError(e: Error, host: string): string {
+  if (isNetworkError(e)) {
+    return `Could not reach ${host} — check your network connection and try again.`;
+  }
+  return `Fetch failed: ${e.message}`;
+}
 
 function normalizeRelativePath(path: string): string {
   return path.replace(/^\.\/+/, "");
@@ -219,12 +234,13 @@ async function installFromFetched(
   fetchedPromise: Promise<FetchedSkill>,
   opts: { json?: boolean; yes?: boolean },
   json: boolean,
+  sourceHost = "the skill source",
 ): Promise<void> {
   let fetched: FetchedSkill;
   try {
     fetched = await fetchedPromise;
   } catch (e) {
-    const message = `Fetch failed: ${(e as Error).message}`;
+    const message = describeFetchError(e as Error, sourceHost);
     if (json) {
       console.log(JSON.stringify({ success: false, error: message }, null, 2));
     } else {
@@ -242,7 +258,9 @@ async function installFromFetched(
     try {
       loaded = loadSkillMetaFromDir(stagingDir);
     } catch (e) {
-      throw new Error(`Invalid skill contract: ${(e as Error).message}`);
+      throw new Error(
+        `Invalid SKILL.md/skill definition: ${(e as Error).message}`,
+      );
     }
     const meta = loaded.meta;
     const plan = buildPlan(stagingDir, meta);
@@ -380,11 +398,22 @@ export async function installCmd(
 
   const source = parseInstallSource(name);
   if (source.type === "github") {
-    await installFromFetched(fetchSkillFromGitHub(source), opts, json);
+    await installFromFetched(
+      fetchSkillFromGitHub(source),
+      opts,
+      json,
+      "github.com",
+    );
     return;
   }
   if (source.type === "url") {
-    await installFromFetched(fetchSkillFromUrl(source.url), opts, json);
+    let host = "the skill URL";
+    try {
+      host = new URL(source.url).host || host;
+    } catch {
+      // keep generic label
+    }
+    await installFromFetched(fetchSkillFromUrl(source.url), opts, json, host);
     return;
   }
 
@@ -408,16 +437,19 @@ export async function installCmd(
 
   const skill = getSkillFromIndex(index, name);
   if (!skill) {
+    const suggestions = await suggestForName(name, { index });
     if (json) {
       console.log(
         JSON.stringify(
-          { success: false, error: `Skill not found: ${name}` },
+          { success: false, error: `Skill not found: ${name}`, suggestions },
           null,
           2,
         ),
       );
     } else {
       console.error(chalk.red("Skill not found:"), name);
+      const hint = didYouMeanLine(suggestions);
+      if (hint) console.error(chalk.dim(hint));
     }
     process.exit(1);
   }

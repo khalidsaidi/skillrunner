@@ -271,14 +271,21 @@ function normalizeSkillMeta(
     throw new Error(`${opts.sourceLabel} must define a description`);
   }
 
+  // SkillRunner extension fields may live at the top level or (as written by
+  // `skill export`, and as the spec suggests for custom fields) under
+  // `metadata`.
   const prerequisites = normalizePrerequisites(
-    pick(meta, ["prerequisites"]) || pick(meta, ["requirements"]),
+    pick(meta, ["prerequisites"]) ||
+      pick(meta, ["requirements"]) ||
+      pick(meta, ["metadata", "prerequisites"]),
   );
   const capabilities = normalizeCapabilities(
-    pick(meta, ["capabilities"]) || pick(meta, ["permissions"]),
+    pick(meta, ["capabilities"]) ??
+      pick(meta, ["permissions"]) ??
+      pick(meta, ["metadata", "capabilities"]),
   );
   const scripts = normalizeScripts(
-    pick(meta, ["scripts"]),
+    pick(meta, ["scripts"]) || pick(meta, ["metadata", "scripts"]),
     pickString(meta, [["check_script"], ["checkScript"]]),
     pickString(meta, [["run_script"], ["runScript"]]),
   );
@@ -296,10 +303,18 @@ function normalizeSkillMeta(
       pick(meta, ["tags"]) || pick(meta, ["keywords"]),
       "comma",
     ),
-    kind: normalizeKind(pick(meta, ["kind"]) || pick(meta, ["type"])),
-    risk: normalizeRisk(pick(meta, ["risk"])),
+    kind: normalizeKind(
+      pick(meta, ["kind"]) ||
+        pick(meta, ["type"]) ||
+        pick(meta, ["metadata", "kind"]),
+    ),
+    risk: normalizeRisk(
+      pick(meta, ["risk"]) || pick(meta, ["metadata", "risk"]),
+    ),
     availability: normalizeAvailability(
-      pick(meta, ["availability"]) || pick(meta, ["tier"]),
+      pick(meta, ["availability"]) ||
+        pick(meta, ["tier"]) ||
+        pick(meta, ["metadata", "availability"]),
     ),
     prerequisites,
     capabilities,

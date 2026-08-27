@@ -10,10 +10,16 @@ import {
   executePlan,
   writeRunArtifacts,
   checkSkillPrerequisites,
+  getRunsDir,
   getSkillsDir,
 } from "@khalidsaidi/skillrunner-engine";
 import { randomUUID } from "crypto";
 import { shouldUseJson } from "../utils/json.js";
+import {
+  didYouMeanLine,
+  installedSkillNames,
+  suggestForName,
+} from "../utils/suggest.js";
 
 function findSkillDir(name: string): string | null {
   const skillsDir = getSkillsDir();
@@ -54,16 +60,25 @@ export async function runCmd(
   const skillDir = findSkillDir(name);
 
   if (!skillDir) {
+    const suggestions = await suggestForName(name, {
+      extraCandidates: installedSkillNames(),
+    });
     if (json) {
       console.log(
         JSON.stringify(
-          { success: false, error: `Skill not installed: ${name}` },
+          {
+            success: false,
+            error: `Skill not installed: ${name}`,
+            suggestions,
+          },
           null,
           2,
         ),
       );
     } else {
       console.error(chalk.red("Skill not installed:"), name);
+      const hint = didYouMeanLine(suggestions);
+      if (hint) console.error(chalk.dim(hint));
     }
     process.exit(1);
   }
@@ -229,8 +244,13 @@ export async function runCmd(
   const last = results[results.length - 1];
   const success = last ? last.success : true;
   const exitCode = last ? last.exitCode : 0;
+  const failureOutput = !success
+    ? last?.stderr?.trim() || last?.stdout?.trim() || ""
+    : "";
+  const failureLines = failureOutput.split("\n").filter((l) => l.trim());
   const failureMessage = !success
-    ? last?.stderr?.trim() || last?.stdout?.trim() || "Skill script failed"
+    ? failureLines.slice(-5).join("\n") ||
+      `Skill script failed (exit code ${exitCode})`
     : undefined;
 
   writeRunArtifacts(
@@ -268,11 +288,23 @@ export async function runCmd(
       process.exit(exitCode || 1);
     }
   } else {
+    const artifactsDir = join(getRunsDir(), runId);
     if (success) {
+      const stdoutLines = (last?.stdout || "")
+        .split("\n")
+        .map((l) => l.trim())
+        .filter(Boolean);
+      const resultLine = stdoutLines[stdoutLines.length - 1];
       console.log(chalk.green("Done."), chalk.dim(`Run ID: ${runId}`));
+      if (resultLine) console.log(`  Result: ${resultLine}`);
+      console.log(chalk.dim(`  Artifacts: ${artifactsDir}`));
     } else {
-      console.error(chalk.red("Failed."), chalk.dim(`Run ID: ${runId}`));
-      if (failureMessage) console.error(chalk.dim(failureMessage));
+      console.error(chalk.red("Failed:"), failureMessage || "unknown error");
+      console.error(
+        chalk.dim(
+          `  Run ID: ${runId} — artifacts: ${artifactsDir}\n  Details: skill logs --id ${runId}`,
+        ),
+      );
       process.exit(exitCode || 1);
     }
   }

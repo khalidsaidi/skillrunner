@@ -14,8 +14,14 @@ const HARD_BLOCK_PATTERNS: RegExp[] = [
   /\bchown\s+-R\b/,
 ];
 
-// Paths that indicate dangerous writes (avoid matching shebangs like #!/usr/bin/env)
-const DANGEROUS_PATH_PATTERN = /(^|[^#])\s*\/(etc|usr\/bin|bin)\b/;
+// Paths that indicate dangerous writes to system locations.
+// Require path-like context: the path must be preceded by start-of-line,
+// whitespace, or a shell delimiter (= ' " ` ( : > | ; &) AND be followed by a
+// real path segment. This keeps prose like "Python/Bash/etc." and embedded
+// shebangs ('''#!/usr/bin/env python3) from matching, while still catching
+// real targets like /etc/passwd, /usr/bin/foo, /bin/sh.
+const DANGEROUS_PATH_PATTERN =
+  /(^|[\s='"`(:>|;&])\/(etc|usr\/bin|bin)\/[A-Za-z0-9._-]/;
 
 export interface GuardResult {
   passed: boolean;
@@ -34,17 +40,25 @@ export function scanScriptForBannedPatterns(scriptPath: string): GuardResult {
 
 export function scanContentForBannedPatterns(content: string): GuardResult {
   const violations: string[] = [];
+  const seen = new Set<string>();
+  const push = (violation: string) => {
+    // One report per identical offense — several patterns matching the same
+    // line should not produce duplicate findings.
+    if (seen.has(violation)) return;
+    seen.add(violation);
+    violations.push(violation);
+  };
   const lines = content.split("\n");
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     if (isComment(line)) continue;
     for (const pat of HARD_BLOCK_PATTERNS) {
       if (pat.test(line)) {
-        violations.push(`Line ${i + 1}: banned pattern: ${line.trim()}`);
+        push(`Line ${i + 1}: banned pattern: ${line.trim()}`);
       }
     }
     if (DANGEROUS_PATH_PATTERN.test(line)) {
-      violations.push(`Line ${i + 1}: writes to system path: ${line.trim()}`);
+      push(`Line ${i + 1}: writes to system path: ${line.trim()}`);
     }
   }
 

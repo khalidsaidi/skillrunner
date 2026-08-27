@@ -1,8 +1,8 @@
 import chalk from "chalk";
-import { cpSync, existsSync, mkdirSync, readdirSync } from "fs";
+import { existsSync, readdirSync } from "fs";
 import { join } from "path";
-import { getSkillsDir } from "@khalidsaidi/skillrunner-engine";
 import { shouldUseJson } from "../utils/json.js";
+import { exportCmd } from "./export.js";
 
 function getCursorSkillsDir(scope: "project" | "global"): string {
   if (scope === "global") {
@@ -11,6 +11,10 @@ function getCursorSkillsDir(scope: "project" | "global"): string {
   return join(process.cwd(), ".cursor", "skills");
 }
 
+/**
+ * Deprecated: `skill cursor install` is an alias for `skill export cursor`.
+ * Kept so existing invocations keep working, with a nudge to the real command.
+ */
 export async function cursorInstallCmd(
   name: string,
   opts: { scope?: string; json?: boolean },
@@ -20,60 +24,22 @@ export async function cursorInstallCmd(
   },
 ): Promise<void> {
   const json = shouldUseJson(opts, cmd);
-  const scope = (opts.scope || "project") as "project" | "global";
-  const skillsDir = getSkillsDir();
-
-  if (!existsSync(skillsDir)) {
-    if (json)
-      console.log(
-        JSON.stringify(
-          { success: false, error: "No skills installed" },
-          null,
-          2,
-        ),
-      );
-    else
-      console.error(
-        chalk.red('No skills installed. Run "skill install <name>" first.'),
-      );
-    process.exit(1);
-  }
-
-  const entries = readdirSync(skillsDir, { withFileTypes: true });
-  const match = entries.find(
-    (e) =>
-      e.isDirectory() && (e.name === name || e.name.startsWith(name + "@")),
-  );
-  if (!match) {
-    if (json) {
-      console.log(
-        JSON.stringify(
-          { success: false, error: `Skill not installed: ${name}` },
-          null,
-          2,
-        ),
-      );
-    } else {
-      console.error(chalk.red("Skill not installed:"), name);
-    }
-    process.exit(1);
-  }
-
-  const srcDir = join(skillsDir, match.name);
-  const destDir = getCursorSkillsDir(scope);
-  mkdirSync(destDir, { recursive: true });
-  const dest = join(destDir, match.name.split("@")[0]);
-  cpSync(srcDir, dest, { recursive: true });
-
-  if (json) {
-    console.log(JSON.stringify({ success: true, path: dest, scope }, null, 2));
-  } else {
-    console.log(
-      chalk.green("Installed to Cursor:"),
-      dest,
-      chalk.dim(`(${scope})`),
+  const scope = opts.scope === "global" ? "global" : "project";
+  if (!json) {
+    console.error(
+      chalk.yellow(
+        `Note: "skill cursor install" is deprecated — use "skill export cursor ${name}${
+          scope === "project" ? " --scope project" : ""
+        }" instead.`,
+      ),
     );
   }
+  await exportCmd(
+    "cursor",
+    [name],
+    { scope, json: opts.json },
+    cmd as Parameters<typeof exportCmd>[3],
+  );
 }
 
 export async function cursorListCmd(
