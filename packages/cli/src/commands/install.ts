@@ -33,6 +33,9 @@ import {
 import { shouldUseJson } from "../utils/json.js";
 import { didYouMeanLine, suggestForName } from "../utils/suggest.js";
 
+/** First-party skills live in their own repo, outside the bundled registry. */
+const SKILLS_REPO = { owner: "khalidsaidi", repo: "skills" };
+
 function isNetworkError(e: Error): boolean {
   const text = `${e.message} ${(e.cause as Error | undefined)?.message || ""}`;
   return /fetch failed|ENOTFOUND|ECONNREFUSED|ECONNRESET|EAI_AGAIN|ETIMEDOUT|ERR_SOCKET|network|abort/i.test(
@@ -437,6 +440,23 @@ export async function installCmd(
 
   const skill = getSkillFromIndex(index, name);
   if (!skill) {
+    const slug = name.trim().split("@")[0];
+    if (/^[A-Za-z0-9._-]+$/.test(slug)) {
+      const fetched = await fetchSkillFromGitHub({
+        ...SKILLS_REPO,
+        path: `skills/${slug}`,
+      }).catch(() => null);
+      if (fetched) {
+        await installFromFetched(
+          Promise.resolve(fetched),
+          opts,
+          json,
+          "github.com",
+        );
+        return;
+      }
+    }
+
     const suggestions = await suggestForName(name, { index });
     if (json) {
       console.log(

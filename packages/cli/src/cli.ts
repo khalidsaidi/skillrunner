@@ -66,7 +66,7 @@ program
   .description(
     "Show a skill's details (risk, capabilities, prerequisites) — read this before installing or running it",
   )
-  .addHelpText("after", example(["skill info run-lint"]))
+  .addHelpText("after", example(["skill info anthropic-pdf"]))
   .action(infoCmd);
 program
   .command("install <source>")

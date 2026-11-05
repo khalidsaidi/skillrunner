@@ -21,9 +21,8 @@ skillrunner/
 │   └── adapters/         # Optional provider adapter stubs (Cursor, CLI)
 ├── registry/
 │   ├── skills/           # Skill definitions (SKILL.md + scripts)
-│   ├── packs/            # Curated skill bundles
-│   └── dist/             # Generated index (gitignored, built in CI)
-├── .github/workflows/    # CI, release, GitHub Pages
+│   └── dist/             # Generated index (gitignored)
+├── .github/workflows/    # Release, GitHub Pages
 └── [config] package.json, tsconfig.base.json, eslint.config.js, etc.
 ```
 
@@ -31,12 +30,10 @@ skillrunner/
 
 ## Adding a Skill
 
-1. Create `registry/skills/<skill-name>/SKILL.md` with YAML frontmatter
-2. For automation skills: add `scripts/check.sh` and `scripts/run.sh`
-3. Run `pnpm registry:validate` and `pnpm registry:build`
+Add first-party skills to [khalidsaidi/skills](https://github.com/khalidsaidi/skills).
 
 ## Code Style
 
 - TypeScript strict mode
 - ESLint + Prettier
-- Run `pnpm lint`, `pnpm format`, and `pnpm format:check` (CI runs format:check)
+- Run `pnpm lint`, `pnpm format`, and `pnpm format:check`

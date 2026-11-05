@@ -4,12 +4,8 @@ This file contains reusable, conversion-oriented copy for the npm package page o
 
 ## Current catalog facts (source of truth)
 
-- Total skills: **73**
-- Automation skills: **14**
-- Knowledge skills: **59**
-- Default-enabled skills: **25**
-- Advanced skills: **48**
-- Packs: **3**
+- Registry skills: **48** (imported from OpenAI and Anthropic)
+- First-party skills: **25**, in [khalidsaidi/skills](https://github.com/khalidsaidi/skills)
 - Source mix:
   - Native SkillRunner: **25**
   - OpenAI upstream imports: **32**
@@ -36,18 +32,17 @@ These blocks are for npm page copy, release notes, and announcements.
 SkillRunner is a local-first CLI for teams that want repeatable engineering workflows without giving up safety or control.  
 Install curated skills, inspect the exact plan before execution, and run with built-in preflight validation and guardrails.
 
-Today SkillRunner supports **73 skills** across code review, debugging, testing, linting, formatting, build/typecheck, dependency audits, release workflows, React maintenance, Terraform operations, and major upstream agent-skill catalogs.  
-The catalog currently includes **14 automation skills** and **59 knowledge skills**, with **25 default-enabled** for fast onboarding.
+Today SkillRunner supports **73 skills**, 48 in its registry and 25 first-party in `khalidsaidi/skills`, across code review, debugging, testing, linting, formatting, build/typecheck, dependency audits, release workflows, React maintenance, Terraform operations, and major upstream agent-skill catalogs.  
+Across both sources there are **14 automation skills** and **59 knowledge skills**.
 
-Updates are continuous: CI runs on every push/PR, registry publishes on `main` registry changes, and a nightly matrix validates behavior across Node, React, Python, and empty project templates.
+The registry publishes whenever registry changes reach `main`.
 
 ### B
 
 SkillRunner gives engineering teams a practical path from ad-hoc prompts to reliable, repeatable execution.  
 It ships as an npm CLI and combines a curated skill registry with run planning, safety checks, and execution artifacts.
 
-With **73 production-oriented skills** and explicit `default` / `advanced` lanes, teams can adopt quickly and scale safely.  
-The platform is continuously validated via CI and nightly multi-template matrix tests, so catalog quality and behavior stay current.
+With **73 skills** and explicit `default` / `advanced` lanes, teams can adopt quickly and scale safely.
 
 ## Keyword sets (A/B)
 
