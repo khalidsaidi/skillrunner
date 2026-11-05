@@ -6,13 +6,10 @@ This file contains reusable, conversion-oriented copy for the npm package page o
 
 - Registry skills: **48** (imported from OpenAI and Anthropic)
 - Source mix:
-  - Native SkillRunner: **25**
   - OpenAI upstream imports: **32**
   - Anthropic upstream imports: **16**
 - Update cadence:
-  - CI on every push and PR
   - Registry publish on `main` pushes that change `registry/**`
-  - Nightly matrix at **06:00 UTC** across `node`, `react`, `python`, and `empty`
 
 ## Short description options (A/B)
 
