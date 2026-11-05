@@ -15,8 +15,7 @@ SkillRunner is a skills ecosystem: CLI (`skill`) + local dashboard + skill regis
 | **packages/dashboard**       | Vite + React UI, API server on **5174**, Vite dev server on **5173** (proxy /api → 5174) |
 | **packages/registry-tools**  | build-registry-index and validate-registry (builds registry/dist/index.json)             |
 | **packages/adapters**        | Optional provider adapter stubs (Cursor, CLI) for agent platform integration             |
-| **registry/skills/**         | 25 skills                                                                                |
-| **registry/packs/**          | starter.json, react.json, terraform.json                                                 |
+| **registry/skills/**         | 48 imported OpenAI and Anthropic skills                                                  |
 | **registry/dist/index.json** | Generated index, published via GitHub Pages                                              |
 | **.ai/**                     | Entire directory gitignored — NEVER read, edit, or reference .ai/\* (contains secrets)   |
 
@@ -105,16 +104,14 @@ All support --json. Commander; subcommands receive (args, opts, cmd). cmd.opts()
 - **build.ts:** reads registry/skills/_/SKILL.md frontmatter via gray-matter, writes registry/dist/index.json; loads packs from registry/packs/_.json
 - **validate.ts:** each skill has SKILL.md; if scripts/ exists, check.sh and run.sh must be executable
 
-## Skills (25)
+## Skills
 
-**Automation (14):** node-doctor, repo-bootstrap, run-lint, run-format, run-tests, run-build, run-typecheck, dependency-audit-report, dependency-security-fix, react-maintenance-upgrade, terraform-fmt-validate, terraform-drift-audit, git-status-report, changelog-from-commits
-
-**Knowledge (11):** code-review-checklist, debugging-playbook, react-patterns, testing-playbook, security-hygiene, terraform-structure, docs-styleguide, git-commit-style, pr-description-style, release-notes-style, deployment-checklist
+First-party skills and packs live in [khalidsaidi/skills](https://github.com/khalidsaidi/skills). `skill install <name>` falls back to that repo when a name is not in the registry. `registry/skills` holds only the imported OpenAI and Anthropic skills.
 
 ## Build / scripts
 
 - `pnpm install` — install deps
-- `pnpm format:check` — verify formatting (CI)
+- `pnpm format:check` — verify formatting
 - `pnpm build` — pnpm -r build (all packages)
 - `pnpm registry:validate` — validate registry
 - `pnpm registry:build` — build registry-tools then node packages/registry-tools/dist/build.js
