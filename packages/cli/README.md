@@ -15,7 +15,7 @@ npm i -g @khalidsaidi/skillrunner
 ```bash
 skill doctor                 # check your environment
 skill search pdf             # find a skill in the curated registry
-skill install run-lint       # install it from khalidsaidi/skills (audited first)
+skill install khalidsaidi/skills/skills/run-lint   # install from GitHub (audited first)
 skill plan run-lint          # preview steps + risk, nothing executes
 skill run run-lint           # preflight → guard → confirm → execute
 skill logs --last            # persisted run artifacts

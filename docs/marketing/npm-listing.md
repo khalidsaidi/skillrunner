@@ -5,7 +5,6 @@ This file contains reusable, conversion-oriented copy for the npm package page o
 ## Current catalog facts (source of truth)
 
 - Registry skills: **48** (imported from OpenAI and Anthropic)
-- First-party skills: **25**, in [khalidsaidi/skills](https://github.com/khalidsaidi/skills)
 - Source mix:
   - Native SkillRunner: **25**
   - OpenAI upstream imports: **32**
@@ -32,8 +31,7 @@ These blocks are for npm page copy, release notes, and announcements.
 SkillRunner is a local-first CLI for teams that want repeatable engineering workflows without giving up safety or control.  
 Install curated skills, inspect the exact plan before execution, and run with built-in preflight validation and guardrails.
 
-Today SkillRunner supports **73 skills**, 48 in its registry and 25 first-party in `khalidsaidi/skills`, across code review, debugging, testing, linting, formatting, build/typecheck, dependency audits, release workflows, React maintenance, Terraform operations, and major upstream agent-skill catalogs.  
-Across both sources there are **14 automation skills** and **59 knowledge skills**.
+Today its registry has **48 skills** imported from the OpenAI and Anthropic skill catalogs, and it can install any other SKILL.md skill from GitHub or a URL.
 
 The registry publishes whenever registry changes reach `main`.
 
@@ -42,7 +40,7 @@ The registry publishes whenever registry changes reach `main`.
 SkillRunner gives engineering teams a practical path from ad-hoc prompts to reliable, repeatable execution.  
 It ships as an npm CLI and combines a curated skill registry with run planning, safety checks, and execution artifacts.
 
-With **73 skills** and explicit `default` / `advanced` lanes, teams can adopt quickly and scale safely.
+With **48 registry skills** and GitHub installs for everything else, teams can adopt quickly and scale safely.
 
 ## Keyword sets (A/B)
 

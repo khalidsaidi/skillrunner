@@ -106,7 +106,7 @@ All support --json. Commander; subcommands receive (args, opts, cmd). cmd.opts()
 
 ## Skills
 
-First-party skills and packs live in [khalidsaidi/skills](https://github.com/khalidsaidi/skills). `skill install <name>` falls back to that repo when a name is not in the registry. `registry/skills` holds only the imported OpenAI and Anthropic skills.
+`registry/skills` holds only the imported OpenAI and Anthropic skills. Install anything else by GitHub path or URL.
 
 ## Build / scripts
 

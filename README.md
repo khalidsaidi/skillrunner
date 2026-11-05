@@ -32,7 +32,7 @@ Install any SKILL.md skill straight from GitHub or a URL — not just this repo'
 skill install anthropics/skills/skills/pdf        # owner/repo/path
 skill install https://github.com/anthropics/skills/tree/main/skills/internal-comms
 skill install https://example.com/my-skill/SKILL.md
-skill install run-lint                            # curated registry, same pipeline
+skill install anthropic-pdf                       # curated registry, same pipeline
 ```
 
 Every remote skill is staged, its contract parsed, its plan computed, and **every script statically audited before it lands**. Blocked skills never reach your skills directory; warnings are shown before you confirm.
@@ -79,7 +79,7 @@ Knowledge skills (instructions, no scripts) have nothing to execute — `skill r
 
 ## Curated registry
 
-First-party skills live in [khalidsaidi/skills](https://github.com/khalidsaidi/skills), and `skill install <name>` fetches them from there. A catalog of **48 skills** imported from the OpenAI and Anthropic skill repos, with pristine `upstream/` copies, is versioned in `registry/` and served from GitHub Pages (`https://khalidsaidi.github.io/skillrunner/index.json`). The registry is a convenience, not the point — `skill install` and `skill audit` work against the whole SKILL.md ecosystem.
+A catalog of **48 skills** imported from the OpenAI and Anthropic skill repos, with pristine `upstream/` copies, is versioned in `registry/` and served from GitHub Pages (`https://khalidsaidi.github.io/skillrunner/index.json`). The registry is a convenience, not the point — `skill install` and `skill audit` work against the whole SKILL.md ecosystem.
 
 ## Skill contracts
 
