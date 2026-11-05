@@ -45,7 +45,7 @@ This triggers the Release workflow (publish to npm + GitHub Release).
 npm i -g @khalidsaidi/skillrunner
 cd /tmp/any-project
 skill doctor
-skill install node-doctor
+skill install khalidsaidi/skills/skills/node-doctor
 skill run node-doctor --yes
 ```
 

@@ -30,7 +30,7 @@ skillrunner/
 
 ## Adding a Skill
 
-Add first-party skills to [khalidsaidi/skills](https://github.com/khalidsaidi/skills).
+Skills in `registry/skills` are imported with `pnpm registry:sync-upstream`.
 
 ## Code Style
 

@@ -78,7 +78,7 @@ program
   .addHelpText(
     "after",
     example([
-      "skill install run-lint",
+      "skill install anthropic-pdf",
       "skill install anthropics/skills/skills/pdf",
     ]),
   )
