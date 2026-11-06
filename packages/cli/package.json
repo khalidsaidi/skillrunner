@@ -1,6 +1,6 @@
 {
   "name": "@khalidsaidi/skillrunner",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Audit, safely run, and export SKILL.md agent skills across Claude Code, Codex, Cursor, and opencode.",
   "type": "module",
   "license": "MIT",
